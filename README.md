@@ -10,8 +10,8 @@ talking to a Supabase (Postgres + Storage + Auth) backend.
 ## Pages
 
 - **`EAP AI Commons.html`** — home: hero, a 2×3 grid of the six categories
-  (Skills · Artefacts · Frameworks · Docs · Links · Other), a contribute band,
-  and a recently-added list. Counts and recent items are rendered from the database.
+  (Skills · Artefacts · Frameworks · Docs · Links · Other), and a contribute band.
+  Category counts and the stat line are rendered from the database.
 - **`Browse.html`** — sidebar with live category / level / type filters, sort
   (newest / A–Z), and a card ↔ list view toggle. Opens filtered when reached via
   a category card (`#cat=skills`).

@@ -121,17 +121,6 @@
         </div>
       </div>
     </section>
-
-    <section class="block wrap">
-      <div class="section-head">
-        <div>
-          <span class="eyebrow">Activity</span>
-          <h2>Recently added.</h2>
-        </div>
-        <a class="btn" href="Browse.html">View all</a>
-      </div>
-      <div class="recent-list" id="recentlist"></div>
-    </section>
   </main>
 
   <footer class="footer">
@@ -166,15 +155,8 @@
           <span class="cat-arrow">${ICON.arrow}</span></div>
       </a>`;
     }
-    function recentRow(a) {
-      return `<a class="r-row" href="Artefact.html#id=${a.id}">
-        <div class="r-title"><span class="type">${typeLabel(a.type)}</span>${a.title}</div>
-        <div class="r-cat">${catById(a.cat).name}</div><div class="r-when">${a.added}</div>
-      </a>`;
-    }
     function render() {
       document.getElementById('catgrid').innerHTML = CATEGORIES.map(catCard).join('');
-      document.getElementById('recentlist').innerHTML = ARTEFACTS.slice(0, 5).map(recentRow).join('');
       document.getElementById('stat-arts').textContent = TOTAL;
       document.getElementById('stat-cats').textContent = CATEGORIES.length;
       document.getElementById('stat-contribs').textContent = CONTRIBUTORS;
