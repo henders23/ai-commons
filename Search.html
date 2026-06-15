@@ -82,10 +82,13 @@ mark{ background:color-mix(in srgb,var(--accent) 26%, transparent); color:var(--
 
   <div id="tweaks-root"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
   <script src="commons-data.js"></script>
   <script src="commons.js"></script>
   <script>
-  (function () {
+  (async function () {
+    await loadData();
     const big = document.getElementById('bigsearch');
     const meta = document.getElementById('smeta');
     const box = document.getElementById('sresults');

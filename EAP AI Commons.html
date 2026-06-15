@@ -90,11 +90,11 @@
         </button>
         <a class="btn" href="Browse.html">Browse everything</a>
       </div>
-      <div class="statline">
-        <span><b>51</b> artefacts</span><span class="sep">/</span>
-        <span><b>6</b> categories</span><span class="sep">/</span>
-        <span><b>14</b> contributors</span><span class="sep">/</span>
-        <span>updated <b>this week</b></span>
+      <div class="statline" id="statline">
+        <span><b id="stat-arts">—</b> artefacts</span><span class="sep">/</span>
+        <span><b id="stat-cats">—</b> categories</span><span class="sep">/</span>
+        <span><b id="stat-contribs">—</b> contributors</span><span class="sep">/</span>
+        <span>updated <b id="stat-updated">recently</b></span>
       </div>
     </section>
 
@@ -106,56 +106,7 @@
         </div>
         <a class="btn" href="Browse.html">View all artefacts</a>
       </div>
-      <div class="grid">
-        <a class="cat" href="Browse.html#cat=skills">
-          <span class="bgnum mono">01</span>
-          <div class="cat-top"><span class="cat-idx">01</span><span class="cat-count">14</span></div>
-          <h3>Skills</h3>
-          <p class="cat-desc">Teachable academic abilities and the AI practices that support them.</p>
-          <div class="cat-foot"><span class="cat-ex">Prompting · Fact-checking · Revision</span>
-            <span class="cat-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div>
-        </a>
-        <a class="cat" href="Browse.html#cat=artefacts">
-          <span class="bgnum mono">02</span>
-          <div class="cat-top"><span class="cat-idx">02</span><span class="cat-count">9</span></div>
-          <h3>Artefacts</h3>
-          <p class="cat-desc">Worked examples, annotated AI-assisted texts and model answers.</p>
-          <div class="cat-foot"><span class="cat-ex">Annotated essays · Before/after · Transcripts</span>
-            <span class="cat-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div>
-        </a>
-        <a class="cat" href="Browse.html#cat=frameworks">
-          <span class="bgnum mono">03</span>
-          <div class="cat-top"><span class="cat-idx">03</span><span class="cat-count">8</span></div>
-          <h3>Frameworks</h3>
-          <p class="cat-desc">Models and rubrics for using, disclosing and assessing AI work.</p>
-          <div class="cat-foot"><span class="cat-ex">Disclosure model · Feedback rubric · CRAAP</span>
-            <span class="cat-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div>
-        </a>
-        <a class="cat" href="Browse.html#cat=docs">
-          <span class="bgnum mono">04</span>
-          <div class="cat-top"><span class="cat-idx">04</span><span class="cat-count">11</span></div>
-          <h3>Docs</h3>
-          <p class="cat-desc">Policies, guidance, prompts and reusable templates.</p>
-          <div class="cat-foot"><span class="cat-ex">AI-use policy · Prompt sets · Cover sheets</span>
-            <span class="cat-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div>
-        </a>
-        <a class="cat" href="Browse.html#cat=links">
-          <span class="bgnum mono">05</span>
-          <div class="cat-top"><span class="cat-idx">05</span><span class="cat-count">7</span></div>
-          <h3>Links</h3>
-          <p class="cat-desc">Curated external sites, tools and AI-literacy resources.</p>
-          <div class="cat-foot"><span class="cat-ex">Phrasebank · Corpora · AI literacy</span>
-            <span class="cat-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div>
-        </a>
-        <a class="cat" href="Browse.html#cat=other">
-          <span class="bgnum mono">06</span>
-          <div class="cat-top"><span class="cat-idx">06</span><span class="cat-count">2</span></div>
-          <h3>Other</h3>
-          <p class="cat-desc">Anything that doesn't fit neatly into the five above — yet.</p>
-          <div class="cat-foot"><span class="cat-ex">CPD · Submissions · Drafts</span>
-            <span class="cat-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div>
-        </a>
-      </div>
+      <div class="grid" id="catgrid"></div>
 
       <div class="band">
         <div>
@@ -179,28 +130,7 @@
         </div>
         <a class="btn" href="Browse.html">View all</a>
       </div>
-      <div class="recent-list">
-        <a class="r-row" href="Artefact.html#id=prompt-paraphrase">
-          <div class="r-title"><span class="type">DOC</span>Prompting for paraphrase practice</div>
-          <div class="r-cat">Skills</div><div class="r-when">2d</div>
-        </a>
-        <a class="r-row" href="Artefact.html#id=annotated-essay">
-          <div class="r-title"><span class="type">DOC</span>Annotated AI-assisted essay</div>
-          <div class="r-cat">Artefacts</div><div class="r-when">4d</div>
-        </a>
-        <a class="r-row" href="Artefact.html#id=factcheck-ai">
-          <div class="r-title"><span class="type">DOC</span>Teaching students to fact-check AI output</div>
-          <div class="r-cat">Skills</div><div class="r-when">5d</div>
-        </a>
-        <a class="r-row" href="Artefact.html#id=disclosure-model">
-          <div class="r-title"><span class="type">DOC</span>A framework for disclosing AI use</div>
-          <div class="r-cat">Frameworks</div><div class="r-when">6d</div>
-        </a>
-        <a class="r-row" href="Artefact.html#id=reflection-prompts">
-          <div class="r-title"><span class="type">DOC</span>Reflective-writing prompts for AI feedback</div>
-          <div class="r-cat">Docs</div><div class="r-when">5d</div>
-        </a>
-      </div>
+      <div class="recent-list" id="recentlist"></div>
     </section>
   </main>
 
@@ -219,8 +149,41 @@
 
   <div id="tweaks-root"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
   <script src="commons-data.js"></script>
   <script src="commons.js"></script>
+  <script>
+  (async function () {
+    await loadData();
+    function catCard(c) {
+      return `<a class="cat" href="Browse.html#cat=${c.id}">
+        <span class="bgnum mono">${c.idx}</span>
+        <div class="cat-top"><span class="cat-idx">${c.idx}</span><span class="cat-count">${c.count}</span></div>
+        <h3>${c.name}</h3>
+        <p class="cat-desc">${c.blurb}</p>
+        <div class="cat-foot"><span class="cat-ex">${c.examples}</span>
+          <span class="cat-arrow">${ICON.arrow}</span></div>
+      </a>`;
+    }
+    function recentRow(a) {
+      return `<a class="r-row" href="Artefact.html#id=${a.id}">
+        <div class="r-title"><span class="type">${typeLabel(a.type)}</span>${a.title}</div>
+        <div class="r-cat">${catById(a.cat).name}</div><div class="r-when">${a.added}</div>
+      </a>`;
+    }
+    function render() {
+      document.getElementById('catgrid').innerHTML = CATEGORIES.map(catCard).join('');
+      document.getElementById('recentlist').innerHTML = ARTEFACTS.slice(0, 5).map(recentRow).join('');
+      document.getElementById('stat-arts').textContent = TOTAL;
+      document.getElementById('stat-cats').textContent = CATEGORIES.length;
+      document.getElementById('stat-contribs').textContent = CONTRIBUTORS;
+      document.getElementById('stat-updated').textContent = ARTEFACTS[0] ? ARTEFACTS[0].added + ' ago' : 'recently';
+    }
+    render();
+    window.onLibraryChanged = render;
+  })();
+  </script>
   <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
   <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
   <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>

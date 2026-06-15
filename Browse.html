@@ -137,10 +137,13 @@
 
   <div id="tweaks-root"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
   <script src="commons-data.js"></script>
   <script src="commons.js"></script>
   <script>
-  (function () {
+  (async function () {
+    await loadData();
     const state = { cat: param('cat') || 'all', levels: new Set(), types: new Set(), sort: 'new', view: 'cards' };
     const countByCat = id => ARTEFACTS.filter(a => a.cat === id).length;
 
@@ -216,6 +219,8 @@
     }
 
     renderCatNav(); renderHead(); render();
+    // re-render after an admin publishes a new artefact via the modal
+    window.onLibraryChanged = () => { renderCatNav(); renderHead(); render(); };
   })();
   </script>
 
