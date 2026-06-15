@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en" data-corners="soft" data-density="comfortable">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Browse · EAP AI Commons</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="commons.css" />
+<style>
+.browse{ display:grid; grid-template-columns:238px 1fr; gap:44px; align-items:start; padding-bottom:20px; }
+.sidebar{ position:sticky; top:88px; display:flex; flex-direction:column; gap:26px; }
+.side-grp > .lbl{ font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--dim); margin-bottom:11px; }
+.side-link{ display:flex; align-items:center; gap:10px; width:100%; text-align:left; padding:7px 10px; border-radius:8px; font-size:14.5px; color:var(--muted); background:none; border:0; font-family:var(--font); cursor:pointer; transition:.13s; }
+.side-link span{ flex:1; }
+.side-link em{ font-style:normal; font-family:var(--mono); font-size:12px; color:var(--dim); }
+.side-link:hover{ background:var(--surface-2); color:var(--text); }
+.side-link.on{ background:var(--surface-3); color:var(--text); }
+.side-link.on em{ color:var(--muted); }
+.side-check{ display:flex; align-items:center; gap:10px; padding:6px 10px; font-size:14px; color:var(--muted); cursor:pointer; user-select:none; }
+.side-check:hover{ color:var(--text); }
+.side-check .box{ width:16px; height:16px; flex:none; border:1px solid var(--border-2); border-radius:5px; display:grid; place-items:center; transition:.13s; }
+.side-check input{ display:none; }
+.side-check .box svg{ width:11px; height:11px; opacity:0; color:var(--accent-ink); }
+.side-check input:checked + .box{ background:var(--accent); border-color:var(--accent); }
+.side-check input:checked + .box svg{ opacity:1; }
+
+.main-head h1{ font-size:clamp(28px,3.6vw,40px); }
+.main-head .lead{ margin-top:12px; color:var(--muted); max-width:62ch; font-size:16px; }
+.toolbar{ display:flex; align-items:center; gap:16px; margin:26px 0 22px; padding-bottom:16px; border-bottom:1px solid var(--border); }
+.toolbar .count{ font-family:var(--mono); font-size:12.5px; color:var(--muted); }
+.toolbar .spacer{ flex:1; }
+.tsel{ position:relative; }
+.tsel select{ appearance:none; background:var(--surface); border:1px solid var(--border); color:var(--text); font-family:var(--font); font-size:13.5px; height:34px; padding:0 30px 0 12px; border-radius:var(--r-btn); cursor:pointer; }
+.tsel::after{ content:""; position:absolute; right:12px; top:50%; width:7px; height:7px; border-right:1.5px solid var(--muted); border-bottom:1.5px solid var(--muted); transform:translateY(-70%) rotate(45deg); pointer-events:none; }
+.viewtog{ display:flex; border:1px solid var(--border); border-radius:var(--r-btn); overflow:hidden; }
+.viewtog button{ width:36px; height:34px; display:grid; place-items:center; background:var(--surface); border:0; color:var(--muted); cursor:pointer; transition:.13s; }
+.viewtog button + button{ border-left:1px solid var(--border); }
+.viewtog button.on{ background:var(--surface-3); color:var(--text); }
+.viewtog svg{ width:15px; height:15px; }
+
+.artgrid{ display:grid; grid-template-columns:repeat(2,1fr); gap:var(--grid-gap); }
+.artgrid.cols3{ grid-template-columns:repeat(3,1fr); }
+
+/* list view */
+.artlist{ border:1px solid var(--border); border-radius:var(--r-card); overflow:hidden; background:var(--surface); }
+.lrow{ display:grid; grid-template-columns:1fr auto auto auto; align-items:center; gap:20px; padding:16px 20px; border-top:1px solid var(--border); cursor:pointer; transition:background .13s; }
+.lrow:first-child{ border-top:0; }
+.lrow:hover{ background:var(--surface-2); }
+.lrow .lt{ min-width:0; }
+.lrow .lt h3{ font-size:15.5px; font-weight:500; letter-spacing:-0.01em; }
+.lrow .lt .ld{ color:var(--dim); font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-top:2px; }
+.lrow .lc{ font-family:var(--mono); font-size:12px; color:var(--muted); }
+.lrow .ll{ font-family:var(--mono); font-size:12px; color:var(--dim); }
+.lrow .lw{ font-family:var(--mono); font-size:12px; color:var(--dim); min-width:42px; text-align:right; }
+
+.empty{ padding:60px 20px; text-align:center; color:var(--dim); font-family:var(--mono); font-size:13px; }
+
+@media (max-width:980px){ .browse{ grid-template-columns:1fr; gap:28px; } .sidebar{ position:static; } .artgrid{ grid-template-columns:repeat(2,1fr); } }
+@media (max-width:880px){ .search{ display:none; } }
+@media (max-width:640px){ .artgrid, .artgrid.cols3{ grid-template-columns:1fr; } .lrow{ grid-template-columns:1fr auto; } .lrow .lc, .lrow .ll{ display:none; } }
+</style>
+</head>
+<body>
+  <header class="nav">
+    <div class="nav-in">
+      <a class="brand" href="EAP AI Commons.html"><span class="dot"></span>EAP&nbsp;AI&nbsp;Commons</a>
+      <div class="nav-spacer"></div>
+      <label class="search" for="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="search" type="text" placeholder="Search the library" autocomplete="off" />
+        <span class="kbd">⌘K</span>
+      </label>
+      <button class="btn btn-primary" data-open-upload>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        Upload
+      </button>
+    </div>
+  </header>
+
+  <main class="wrap" style="padding-top:30px;">
+    <nav class="crumbs">
+      <a href="EAP AI Commons.html">Home</a><span class="sep">/</span>
+      <b id="crumb">All artefacts</b>
+    </nav>
+    <div class="page-head" style="padding:22px 0 0;">
+      <h1 id="title" class="main-head" style="font-size:clamp(28px,3.6vw,40px);">All artefacts</h1>
+      <p class="lead" id="lead">Everything in the library — skills, artefacts, frameworks, documents and links for using AI in EAP.</p>
+    </div>
+
+    <div class="browse" style="padding-top:30px;">
+      <aside class="sidebar">
+        <div class="side-grp">
+          <div class="lbl">Categories</div>
+          <div id="catnav"></div>
+        </div>
+        <div class="side-grp">
+          <div class="lbl">Level</div>
+          <div id="levelnav"></div>
+        </div>
+        <div class="side-grp">
+          <div class="lbl">Type</div>
+          <div id="typenav"></div>
+        </div>
+      </aside>
+
+      <section>
+        <div class="toolbar">
+          <span class="count" id="count">—</span>
+          <span class="spacer"></span>
+          <div class="tsel">
+            <select id="sort">
+              <option value="new">Newest first</option>
+              <option value="az">A–Z</option>
+            </select>
+          </div>
+          <div class="viewtog" id="viewtog">
+            <button data-view="cards" class="on" aria-label="Card view"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></button>
+            <button data-view="list" aria-label="List view"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+          </div>
+        </div>
+        <div id="results"></div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-in">
+      <a class="brand" href="EAP AI Commons.html"><span class="dot"></span>EAP&nbsp;AI&nbsp;Commons</a>
+      <div class="links">
+        <a href="#">About</a><a href="#">Guidelines</a><a data-open-upload href="#">Contribute</a><a href="#">RSS</a>
+      </div>
+      <div class="legal">Open access · CC BY 4.0</div>
+    </div>
+  </footer>
+
+  <div id="tweaks-root"></div>
+
+  <script src="commons-data.js"></script>
+  <script src="commons.js"></script>
+  <script>
+  (function () {
+    const state = { cat: param('cat') || 'all', levels: new Set(), types: new Set(), sort: 'new', view: 'cards' };
+    const countByCat = id => ARTEFACTS.filter(a => a.cat === id).length;
+
+    // sidebar: categories
+    const catnav = document.getElementById('catnav');
+    const catRow = (id, name, n) => `<button class="side-link${state.cat===id?' on':''}" data-cat="${id}"><span>${name}</span><em>${n}</em></button>`;
+    function renderCatNav() {
+      catnav.innerHTML = catRow('all', 'All artefacts', ARTEFACTS.length) +
+        CATEGORIES.map(c => catRow(c.id, c.name, countByCat(c.id))).join('');
+      catnav.querySelectorAll('[data-cat]').forEach(b => b.addEventListener('click', () => setCat(b.dataset.cat)));
+    }
+    // sidebar: levels + types
+    const levelnav = document.getElementById('levelnav');
+    levelnav.innerHTML = LEVELS.map(l => `<label class="side-check"><input type="checkbox" value="${l}"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 6"/></svg></span>${l}</label>`).join('');
+    const typenav = document.getElementById('typenav');
+    typenav.innerHTML = [['doc','Documents'],['link','Links']].map(([v,l]) => `<label class="side-check"><input type="checkbox" value="${v}"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 6"/></svg></span>${l}</label>`).join('');
+    levelnav.addEventListener('change', e => { toggle(state.levels, e.target.value, e.target.checked); render(); });
+    typenav.addEventListener('change', e => { toggle(state.types, e.target.value, e.target.checked); render(); });
+    function toggle(set, v, on){ on ? set.add(v) : set.delete(v); }
+
+    document.getElementById('sort').addEventListener('change', e => { state.sort = e.target.value; render(); });
+    document.getElementById('viewtog').addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b) return;
+      state.view = b.dataset.view;
+      [...e.currentTarget.children].forEach(c => c.classList.toggle('on', c === b));
+      render();
+    });
+
+    function setCat(id) {
+      state.cat = id;
+      const url = id === 'all' ? 'Browse.html' : 'Browse.html#cat=' + id;
+      history.replaceState(null, '', url);
+      renderCatNav(); renderHead(); render();
+    }
+
+    function renderHead() {
+      const c = state.cat === 'all' ? null : catById(state.cat);
+      document.getElementById('crumb').textContent = c ? c.name : 'All artefacts';
+      document.getElementById('title').textContent = c ? c.name : 'All artefacts';
+      document.getElementById('lead').textContent = c ? c.blurb
+        : 'Everything in the library — skills, artefacts, frameworks, documents and links for using AI in EAP.';
+      document.title = (c ? c.name : 'Browse') + ' · EAP AI Commons';
+    }
+
+    function filtered() {
+      let r = ARTEFACTS.filter(a =>
+        (state.cat === 'all' || a.cat === state.cat) &&
+        (state.levels.size === 0 || state.levels.has(a.level)) &&
+        (state.types.size === 0 || state.types.has(a.type)));
+      if (state.sort === 'az') r = r.slice().sort((a, b) => a.title.localeCompare(b.title));
+      return r;
+    }
+
+    function listRow(a) {
+      return `<a class="lrow" href="Artefact.html#id=${a.id}">
+        <div class="lt"><h3>${a.title}</h3><div class="ld">${a.desc}</div></div>
+        <div class="lc">${catById(a.cat).name}</div>
+        <div class="ll">${a.level}</div>
+        <div class="lw">${a.added}</div>
+      </a>`;
+    }
+
+    function render() {
+      const r = filtered();
+      document.getElementById('count').textContent = r.length + (r.length === 1 ? ' result' : ' results');
+      const box = document.getElementById('results');
+      if (!r.length) { box.innerHTML = `<div class="empty">No artefacts match these filters.</div>`; return; }
+      if (state.view === 'list') {
+        box.innerHTML = `<div class="artlist">${r.map(listRow).join('')}</div>`;
+      } else {
+        box.innerHTML = `<div class="artgrid${state.cat==='all'?' cols3':''}">${r.map(artCard).join('')}</div>`;
+      }
+    }
+
+    renderCatNav(); renderHead(); render();
+  })();
+  </script>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <script type="text/babel" src="tweaks-panel.jsx"></script>
+  <script type="text/babel" src="tweaks-home.jsx"></script>
+</body>
+</html>
