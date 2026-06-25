@@ -198,7 +198,7 @@ const EDUApp = (function () {
       ? 'display:flex;gap:14px;padding:20px;background:var(--card);border:1px solid var(--line);border-radius:14px;'
       : 'display:flex;gap:16px;padding:20px 6px;border-bottom:1px solid var(--line);';
 
-    return `${headerBlock}<article style="${rowStyle}">
+    return `${headerBlock}<article id="r-${esc(it.id)}" style="${rowStyle}">
       <div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:none;padding-top:1px;width:34px;">
         <button data-action="vote-up" data-id="${it.id}" style="background:transparent;border:none;cursor:pointer;padding:1px;line-height:.7;font-size:15px;color:${it.userVote === 1 ? 'var(--t-1)' : 'var(--t-dim)'};">▲</button>
         <span style="${mono}font-size:13px;font-weight:600;color:${scoreColor};">${it.score}</span>
@@ -221,6 +221,7 @@ const EDUApp = (function () {
           <button data-action="save" data-id="${it.id}" style="display:flex;align-items:center;gap:6px;background:transparent;border:none;cursor:pointer;padding:0;${mono}font-size:11.5px;color:${saved ? 'var(--t-1)' : 'var(--t-muted)'};"><span style="font-size:12px;">${saved ? '✓' : '❏'}</span> ${saved ? 'Saved' : 'Read later'}</button>
           <button data-action="toggle-row" data-id="${it.id}" style="display:flex;align-items:center;gap:6px;background:transparent;border:none;cursor:pointer;padding:0;${mono}font-size:11.5px;color:${expanded ? 'var(--t-1)' : 'var(--t-muted)'};"><span style="font-size:12px;">❝</span> ${cc === 0 ? 'Discuss' : cc + (cc === 1 ? ' comment' : ' comments')} <span style="font-size:9px;">${expanded ? '▲' : '▼'}</span></button>
           <a href="${esc(it.url)}" target="_blank" rel="noopener" class="h-txt" style="${mono}font-size:11.5px;color:var(--t-muted);text-decoration:none;">Open ↗</a>
+          <a href="r/${esc(it.id)}.html" class="h-txt" style="${mono}font-size:11.5px;color:var(--t-muted);text-decoration:none;">Share</a>
         </div>
         ${expandBlock}
       </div>
@@ -637,7 +638,10 @@ const EDUApp = (function () {
   function deepLink() {
     const h = location.hash.replace(/^#/, '');
     const p = new URLSearchParams(h);
-    if (p.has('cat')) { state.screen = 'app'; state.category = p.get('cat'); }
+    if (p.has('id')) {
+      state.screen = 'app'; state.category = 'all'; state.activeTag = null; state.groupByTag = false;
+      state.expanded[p.get('id')] = true; state._scrollTo = p.get('id');
+    } else if (p.has('cat')) { state.screen = 'app'; state.category = p.get('cat'); }
     else if (h === 'browse' || h === 'app') { state.screen = 'app'; }
   }
 
@@ -650,6 +654,11 @@ const EDUApp = (function () {
       await Promise.all([EDU.load(), refreshAuth()]);
       deepLink();
       render();
+      if (state._scrollTo) {
+        const sel = '#r-' + (window.CSS && CSS.escape ? CSS.escape(state._scrollTo) : state._scrollTo);
+        root.querySelector(sel)?.scrollIntoView({ block: 'center' });
+        state._scrollTo = null;
+      }
     } catch (err) {
       console.error(err);
       root.innerHTML = `<div style="height:100vh;display:grid;place-items:center;color:var(--t-faint);${mono}font-size:13px;">Could not load readings. Check the console.</div>`;

@@ -48,6 +48,22 @@ an admin, a **Review queue** appears in the sidebar listing pending suggestions
 with **Approve & publish** / **Reject** — backed by the readings UPDATE RLS
 policy, so non-editors can never moderate even if they reach the view.
 
+### Shareable reading pages
+
+Every approved reading has a static, crawlable page at `r/<id>.html` with proper
+`<title>`/description/OpenGraph/Twitter meta (so links unfurl and rank), a
+readable themed view, a "Read the original" link, and a "Rate & discuss" link
+back into the app (`Library.html#id=<id>`). A **Share** link on each row in the
+app points to it, and `sitemap.xml` lists them all.
+
+These are plain static files (no runtime server). Regenerate them whenever the
+approved readings change:
+
+```
+node tools/build-reading-pages.mjs                 # fetch live data from Supabase
+node tools/build-reading-pages.mjs --data file.json # or build from a JSON array
+```
+
 ## Pages
 
 - **`EAP AI Commons.html`** — home: hero, a 2×3 grid of the six categories
