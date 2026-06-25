@@ -61,6 +61,18 @@ const EDUApp = (function () {
       style="display:inline-flex;align-items:center;gap:7px;padding:${pad};background:transparent;color:var(--t-muted);border:1px solid var(--line2);border-radius:${big ? 9 : 7}px;font-size:${big ? 13 : 12}px;cursor:pointer;${mono}"><span style="font-size:14px;line-height:1;">${themeGlyph()}</span> ${themeLabel()} mode</button>`;
   }
 
+  // start-page editor auth controls (open the shared auth modal)
+  function authControls() {
+    const ghost = 'display:inline-flex;align-items:center;padding:8px 14px;background:transparent;color:var(--t-1);border:1px solid var(--line3);border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;';
+    if (state.user) {
+      const who = state.isAdmin ? 'Editor' : 'Signed in';
+      return `<span style="${mono}font-size:11px;color:var(--t-faint);align-self:center;">${who}</span>
+        <button data-action="signout" class="h-bd" style="${ghost}">Sign out</button>`;
+    }
+    return `<button data-action="open-auth" class="h-bd" style="${ghost}">Sign in</button>
+      <button data-action="open-register" class="h-bd" style="${ghost}">Register</button>`;
+  }
+
   // ---- HOME screen ----------------------------------------------------------
   // Two identical "access" bands (library + artefacts) keep the start page clean.
   function accessBand(o) {
@@ -88,7 +100,10 @@ const EDUApp = (function () {
       <div class="edu-container" style="max-width:1080px;margin:0 auto;padding:0 40px;">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:22px 0;border-bottom:1px solid var(--line);">
           <div style="${mono}font-size:11px;letter-spacing:0.2em;color:var(--t-eyebrow);text-transform:uppercase;">AI Commons · for Education</div>
-          ${themeToggleBtn(true)}
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            ${authControls()}
+            ${themeToggleBtn(true)}
+          </div>
         </div>
 
         <div style="padding:clamp(52px,9vw,92px) 0 clamp(38px,6vw,60px);max-width:860px;">
@@ -517,7 +532,8 @@ const EDUApp = (function () {
         case 'review': state.category = 'review'; state.activeTag = null; state.groupByTag = false; state.screen = 'app'; render(); break;
         case 'approve': await doModerate(id, 'approve'); break;
         case 'reject': await doModerate(id, 'reject'); break;
-        case 'open-auth': state.showAuth = true; state.authMsg = ''; render(); break;
+        case 'open-auth': state.showAuth = true; state.authMode = 'signin'; state.authMsg = ''; render(); break;
+        case 'open-register': state.showAuth = true; state.authMode = 'signup'; state.authMsg = ''; render(); break;
         case 'close-auth': state.showAuth = false; render(); break;
         case 'auth-toggle': state.authMode = state.authMode === 'signin' ? 'signup' : 'signin'; state.authMsg = ''; render(); break;
         case 'auth-submit': await doAuthSubmit(); break;
