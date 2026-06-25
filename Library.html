@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI Commons for Education</title>
+<meta name="description" content="An open, community-curated index of articles and websites on AI in higher education — rated and discussed by the people doing the work." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="edu.css" />
+</head>
+<body class="edu-body">
+  <div id="edu-root" class="edu"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+  <script src="readings-data.js"></script>
+  <script src="readings.js"></script>
+  <script>EDUApp.mount(document.getElementById('edu-root'));</script>
+</body>
+</html>
