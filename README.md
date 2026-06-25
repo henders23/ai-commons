@@ -64,19 +64,19 @@ node tools/build-reading-pages.mjs                 # fetch live data from Supaba
 node tools/build-reading-pages.mjs --data file.json # or build from a JSON array
 ```
 
-## Pages
+### Unified app
 
-- **`EAP AI Commons.html`** — home: hero, a 2×3 grid of the six categories
-  (Skills · Artefacts · Frameworks · Docs · Links · Other), and a contribute band.
-  Category counts and the stat line are rendered from the database.
-- **`Browse.html`** — sidebar with live category / level / type filters, sort
-  (newest / A–Z), and a card ↔ list view toggle. Opens filtered when reached via
-  a category card (`#cat=skills`).
-- **`Artefact.html`** — detail view: breadcrumb, document preview (or external
-  link card), a "How to use it" callout, full metadata panel, related items, and
-  a ratings + comments section. Routed by `#id=<artefact>`.
-- **`Search.html`** — results page with live filtering, relevance ranking and
-  match highlighting; submitted from the nav search box (or ⌘K) on any page.
+Artefacts now live **inside the readings app** (`Library.html`) as a second
+section — a Readings | Artefacts toggle in the sidebar switches between the
+community readings index and the EAP artefacts library, sharing one design
+system, one theme, and the polymorphic ratings/comments engine. Admins publish
+artefacts (file upload to Storage, or a link) from an in-app modal; `ART`
+(`artefacts-data.js`) is the artefact data layer.
+
+The old standalone artefact pages (`EAP AI Commons.html`, `Browse.html`,
+`Artefact.html`, `Search.html`) are retired — they now redirect into the app
+(`Library.html#artefacts`, preserving a deep-linked artefact id). Their former
+shared layer (`commons.*`, `social.js`, `tweaks-*.jsx`) is no longer loaded.
 
 ## Shared layer
 
