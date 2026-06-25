@@ -63,12 +63,6 @@ const EDUApp = (function () {
   // ---- HOME screen ----------------------------------------------------------
   function homeHtml() {
     const cnt = counts();
-    const STEPS = [
-      { no: '01', title: 'Browse & filter', body: 'Explore by category or tag, search the index, and switch between list and card views.' },
-      { no: '02', title: 'Vote & rate', body: 'Upvote what proves valuable and leave a 1–5 star rating so the strongest reading rises.' },
-      { no: '03', title: 'Discuss', body: 'Comment on any piece and read what other researchers make of it.' },
-      { no: '04', title: 'Save & suggest', body: 'Keep readings in Read later, and submit links of your own to the commons.' },
-    ];
     const cats = EDU.CATS.filter(c => c.key !== 'all').map(c => `
       <button data-action="browse-cat" data-cat="${c.key}" class="h-card"
         style="text-align:left;background:var(--card);border:1px solid var(--line);border-radius:13px;padding:22px 22px 24px;cursor:pointer;transition:border-color .14s;">
@@ -95,18 +89,16 @@ const EDUApp = (function () {
       <div class="edu-container" style="max-width:1080px;margin:0 auto;padding:0 40px;">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:20px;padding:26px 0;border-bottom:1px solid var(--line);">
           <div style="${mono}font-size:11px;letter-spacing:0.2em;color:var(--t-eyebrow);text-transform:uppercase;">AI Commons · for Education</div>
-          <div style="display:flex;align-items:center;gap:12px;">
-            ${iconBtn('toggle-theme', themeGlyph(), themeTitle(), true)}
-            <button data-action="enter" class="h-lift" style="padding:9px 18px;background:var(--t-1);color:var(--bg);border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;${mono}">Browse →</button>
-          </div>
+          ${iconBtn('toggle-theme', themeGlyph(), themeTitle(), true)}
         </div>
 
-        <div style="padding:96px 0 88px;max-width:760px;">
-          <div style="${mono}font-size:11.5px;letter-spacing:0.18em;color:var(--t-muted);text-transform:uppercase;margin-bottom:26px;">A community commons of readings &amp; resources</div>
-          <h1 style="margin:0;font-size:58px;line-height:1.04;letter-spacing:-0.03em;font-weight:700;">The best readings and resources on AI in higher education, in one place.</h1>
-          <p style="margin:30px 0 0;font-size:18px;line-height:1.6;color:var(--t-2);max-width:620px;">An open, curated index of articles and websites on how artificial intelligence is reshaping teaching, research, and academic life — collected, rated, and discussed by the people doing the work — alongside a companion collection of practical artefacts for EAP teaching.</p>
+        <!-- ===== Readings ===== -->
+        <div style="padding:88px 0 72px;max-width:760px;">
+          <div style="${mono}font-size:11.5px;letter-spacing:0.18em;color:var(--t-muted);text-transform:uppercase;margin-bottom:26px;">The readings commons</div>
+          <h1 style="margin:0;font-size:clamp(40px,6vw,58px);line-height:1.04;letter-spacing:-0.03em;font-weight:700;">The best readings on AI in higher education, in one place.</h1>
+          <p style="margin:30px 0 0;font-size:18px;line-height:1.6;color:var(--t-2);max-width:600px;">An open, curated index of articles and websites on how artificial intelligence is reshaping teaching, research, and academic life — collected, rated, and discussed by the people doing the work.</p>
           <div style="display:flex;align-items:center;gap:14px;margin-top:40px;flex-wrap:wrap;">
-            <button data-action="enter" class="h-lift" style="padding:14px 26px;background:var(--t-1);color:var(--bg);border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;">Browse the library →</button>
+            <button data-action="enter" class="h-lift" style="padding:14px 26px;background:var(--t-1);color:var(--bg);border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;">Browse the readings →</button>
             <button data-action="open-suggest" class="h-bd" style="padding:14px 24px;background:transparent;color:var(--t-1);border:1px solid var(--line3);border-radius:10px;font-size:15px;font-weight:500;cursor:pointer;">Suggest a link</button>
           </div>
           <div style="display:flex;align-items:center;gap:22px;margin-top:36px;${mono}font-size:12px;color:var(--t-muted);flex-wrap:wrap;">
@@ -118,47 +110,39 @@ const EDUApp = (function () {
           </div>
         </div>
 
-        <div style="padding:8px 0 80px;border-top:1px solid var(--line);">
-          <div style="${mono}font-size:11px;letter-spacing:0.14em;color:var(--t-muted);text-transform:uppercase;padding:48px 0 28px;">How it works</div>
-          <div class="edu-steps" style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden;">
-            ${STEPS.map(st => `<div style="background:var(--bg);padding:26px 22px 30px;">
-              <div style="${mono}font-size:12px;color:var(--t-dim);margin-bottom:18px;">${st.no}</div>
-              <div style="font-size:16px;font-weight:600;margin-bottom:9px;">${st.title}</div>
-              <div style="font-size:13px;color:var(--t-3);line-height:1.55;">${st.body}</div>
-            </div>`).join('')}
-          </div>
-        </div>
-
-        <div style="padding:0 0 84px;">
-          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:24px;">
-            <div style="${mono}font-size:11px;letter-spacing:0.14em;color:var(--t-muted);text-transform:uppercase;">Browse by category</div>
-            <button data-action="enter" class="h-txt" style="background:transparent;border:none;color:var(--t-muted);${mono}font-size:12px;cursor:pointer;">View all →</button>
-          </div>
+        <div style="padding:0 0 64px;">
+          <div style="${mono}font-size:11px;letter-spacing:0.14em;color:var(--t-muted);text-transform:uppercase;margin-bottom:24px;">Browse by category</div>
           <div class="edu-cats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;">${cats}</div>
         </div>
 
-        <div style="padding:0 0 84px;">
-          <div style="${mono}font-size:11px;letter-spacing:0.14em;color:var(--t-muted);text-transform:uppercase;margin-bottom:24px;">Top rated right now</div>
+        <div style="padding:0 0 28px;">
+          <div style="${mono}font-size:11px;letter-spacing:0.14em;color:var(--t-muted);text-transform:uppercase;margin-bottom:18px;">Top rated right now</div>
           <div style="display:flex;flex-direction:column;">${top || '<div style="color:var(--t-faint);' + mono + 'font-size:13px;padding:18px 0;">No readings yet.</div>'}</div>
         </div>
 
-        <div style="padding:0 0 96px;">
-          <div style="position:relative;overflow:hidden;border:1px solid var(--line2);border-radius:16px;padding:38px 36px;background:var(--card);">
-            <div style="${mono}font-size:11px;letter-spacing:0.16em;color:var(--t-muted);text-transform:uppercase;margin-bottom:14px;">A companion collection</div>
-            <h2 style="margin:0;font-size:clamp(26px,3.2vw,32px);font-weight:700;letter-spacing:-0.02em;">AI artefacts for use in EAP</h2>
-            <p style="margin:14px 0 0;font-size:15.5px;line-height:1.6;color:var(--t-2);max-width:600px;">Practical, classroom-ready resources for English for Academic Purposes — skills, prompts, frameworks and documents you can adapt and use in teaching, curated and moderated by practitioners. A separate, purpose-built library that sits alongside the readings.</p>
-            <div style="margin-top:26px;">
-              <a href="EAP%20AI%20Commons.html" class="h-lift" style="display:inline-flex;align-items:center;gap:8px;padding:13px 22px;background:var(--t-1);color:var(--bg);border-radius:10px;font-size:14.5px;font-weight:600;text-decoration:none;">Open the artefacts library →</a>
+        <!-- ===== zone divider ===== -->
+        <div style="display:flex;align-items:center;gap:18px;padding:40px 0 38px;">
+          <span style="flex:1;height:1px;background:var(--line);"></span>
+          <span style="${mono}font-size:10.5px;letter-spacing:0.2em;color:var(--t-faint);text-transform:uppercase;white-space:nowrap;">Resources for teaching</span>
+          <span style="flex:1;height:1px;background:var(--line);"></span>
+        </div>
+
+        <!-- ===== Artefacts (single access point) ===== -->
+        <div style="padding:0 0 92px;">
+          <div style="position:relative;overflow:hidden;border:1px solid var(--line2);border-radius:18px;padding:clamp(32px,4vw,48px);background:radial-gradient(130% 130% at 100% 0%, color-mix(in srgb, var(--t-1) 5%, transparent), transparent 55%), var(--bg2);">
+            <div style="${mono}font-size:11px;letter-spacing:0.16em;color:var(--t-muted);text-transform:uppercase;margin-bottom:14px;">A companion collection · for EAP teaching</div>
+            <h2 style="margin:0;font-size:clamp(26px,3.4vw,34px);font-weight:700;letter-spacing:-0.02em;">AI artefacts for use in EAP</h2>
+            <p style="margin:14px 0 0;font-size:15.5px;line-height:1.6;color:var(--t-2);max-width:600px;">Practical, classroom-ready resources for English for Academic Purposes — skills, prompts, frameworks and documents you can adapt and use in teaching, curated and moderated by practitioners.</p>
+            <div style="${mono}font-size:11.5px;color:var(--t-muted);letter-spacing:0.02em;margin-top:18px;">Skills · Frameworks · Prompts · Documents · Links</div>
+            <div style="margin-top:28px;">
+              <a href="EAP%20AI%20Commons.html" class="h-lift" style="display:inline-flex;align-items:center;gap:8px;padding:14px 24px;background:var(--t-1);color:var(--bg);border-radius:10px;font-size:14.5px;font-weight:600;text-decoration:none;">Open the artefacts library →</a>
             </div>
           </div>
         </div>
 
-        <div style="padding:30px 0 60px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
-          <span style="${mono}font-size:11px;color:var(--t-faint);letter-spacing:0.04em;">AI Commons for Education · an open community library</span>
-          <div style="display:flex;align-items:center;gap:14px;">
-            <a href="EAP%20AI%20Commons.html" class="h-txt" style="${mono}font-size:11px;color:var(--t-faint);">Artefacts library ↗</a>
-            <button data-action="enter" class="h-lift" style="padding:9px 18px;background:var(--t-1);color:var(--bg);border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;${mono}">Enter →</button>
-          </div>
+        <div style="padding:26px 0 60px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;${mono}font-size:11px;color:var(--t-faint);letter-spacing:0.04em;">
+          <span>AI Commons for Education</span>
+          <span>Open access · CC BY 4.0</span>
         </div>
       </div>
     </div>`;
