@@ -6,8 +6,9 @@
 const EDU = (function () {
   const RL_KEY = 'aice:readlater';
 
-  let CATS = [];   // [{ key, label, blurb }] — 'all' first
-  let ITEMS = [];  // reading rows, newest-aware
+  let CATS = [];     // [{ key, label, blurb }] — 'all' first
+  let ITEMS = [];    // approved reading rows
+  let PENDING = [];  // pending suggestions (admins only; moderation queue)
   let _loaded = null;
 
   // read-later set (per browser) -------------------------------------------
@@ -47,6 +48,7 @@ const EDU = (function () {
       base_score: c.base_score, base_avg: Number(c.base_avg), base_count: c.base_count,
       live_n: c.live_n, live_avg: Number(c.live_avg),
       score: c.score, userVote: votes[c.id] || 0, yourRating: mine[c.id] || 0,
+      contributor: c.contributor || '', status: c.status,
       created_at: c.created_at, added: new Date(c.created_at).getTime(),
       comments: commentsBy[c.id] || [],
     };
@@ -78,11 +80,28 @@ const EDU = (function () {
 
       CATS = [{ key: 'all', label: 'All readings', blurb: 'Everything in the library, ranked by the community.' }]
         .concat((catRes.data || []).map(c => ({ key: c.key, label: c.label, blurb: c.blurb })));
-      ITEMS = (cardRes.data || []).map(c => mapCard(c, votes, mine, commentsBy));
-      return { CATS, ITEMS };
+      const all = (cardRes.data || []).map(c => mapCard(c, votes, mine, commentsBy));
+      // Anon only ever receives approved rows (RLS); admins also get pending ones,
+      // which we route to a separate moderation queue rather than the public lists.
+      ITEMS = all.filter(i => i.status === 'approved');
+      PENDING = all.filter(i => i.status === 'pending').sort((a, b) => b.added - a.added);
+      return { CATS, ITEMS, PENDING };
     })();
     return _loaded;
   }
+
+  function reload() { _loaded = null; return load(); }
+
+  // moderation (admin-only; the readings UPDATE RLS policy enforces is_admin())
+  async function moderate(id, status) {
+    const { error } = await SB.from('readings').update({ status }).eq('id', id);
+    if (error) throw error;
+    const it = PENDING.find(x => x.id === id);
+    PENDING = PENDING.filter(x => x.id !== id);
+    if (status === 'approved' && it) { it.status = 'approved'; ITEMS.push(it); }
+  }
+  const approve = id => moderate(id, 'approved');
+  const reject = id => moderate(id, 'rejected');
 
   // refresh one reading's live vote/rating aggregates after a write
   async function refreshOne(id) {
@@ -149,11 +168,13 @@ const EDU = (function () {
   }
 
   return {
-    load, vote, rate, addComment, addTag, suggest, refreshOne,
+    load, reload, vote, rate, addComment, addTag, suggest, refreshOne,
+    approve, reject,
     isSaved, toggleSaved, savedCount,
     ratingAvg, ratingCount,
     get CATS() { return CATS; },
     get ITEMS() { return ITEMS; },
+    get PENDING() { return PENDING; },
   };
 })();
 
