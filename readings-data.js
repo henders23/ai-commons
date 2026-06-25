@@ -117,7 +117,10 @@ const EDU = (function () {
     if (!it) return;
     const value = it.userVote === dir ? 0 : dir;       // toggle off if same
     const { data, error } = await SB.rpc('vote_reading', { p_reading: id, p_visitor: visitorId(), p_value: value });
-    if (error) { console.error(error); return; }
+    if (error) {
+      if ((error.message || '').includes('rate_limited')) return 'rate_limited';
+      console.error(error); return;
+    }
     it.userVote = value;
     if (typeof data === 'number') it.score = data;
   }
@@ -132,7 +135,10 @@ const EDU = (function () {
       const { error } = await SB.rpc('submit_rating', {
         p_target_type: 'reading', p_target_id: id, p_visitor: visitorId(), p_stars: next,
       });
-      if (error) { console.error(error); return; }
+      if (error) {
+        if ((error.message || '').includes('rate_limited')) return 'rate_limited';
+        console.error(error); return;
+      }
     }
     it.yourRating = next;
     await refreshOne(id);

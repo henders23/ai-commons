@@ -6,6 +6,7 @@
 const EDUApp = (function () {
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const mono = "font-family:var(--mono);";
+  const RATE_MSG = "You're going a bit fast — give it a minute.";
 
   const state = {
     theme: (function () { try { return localStorage.getItem('aice-theme') || 'dark'; } catch (e) { return 'dark'; } })(),
@@ -519,10 +520,10 @@ const EDUApp = (function () {
         case 'filter-tag': state.activeTag = t.dataset.tag; state.category = 'all'; state.groupByTag = false; render(); break;
         case 'open-reading': open(id); break;
         case 'toggle-row': state.expanded[id] = !state.expanded[id]; render(); break;
-        case 'vote-up': await EDU.vote(id, 1); render(); break;
-        case 'vote-down': await EDU.vote(id, -1); render(); break;
+        case 'vote-up': if (await EDU.vote(id, 1) === 'rate_limited') flash(RATE_MSG); render(); break;
+        case 'vote-down': if (await EDU.vote(id, -1) === 'rate_limited') flash(RATE_MSG); render(); break;
         case 'save': { const willSave = EDU.toggleSaved(id); flash(willSave ? 'Saved to Read later' : 'Removed from Read later'); break; }
-        case 'rate': await EDU.rate(id, +t.dataset.star); render(); break;
+        case 'rate': if (await EDU.rate(id, +t.dataset.star) === 'rate_limited') flash(RATE_MSG); render(); break;
         case 'post-comment': await postComment(id); break;
         case 'open-suggest': state.showSuggest = true; render(); break;
         case 'close-suggest': state.showSuggest = false; render(); break;
