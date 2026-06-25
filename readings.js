@@ -14,6 +14,8 @@ const EDUApp = (function () {
     expanded: {}, drafts: {}, tagDrafts: {},
     showSuggest: false,
     suggest: { url: '', title: '', category: 'policy', type: 'article', tags: '', description: '', contributor: '' },
+    user: null, isAdmin: false,
+    showAuth: false, authMode: 'signin', authMsg: '', auth: { email: '', password: '' },
     toast: null, _toastT: null,
   };
 
@@ -100,9 +102,9 @@ const EDUApp = (function () {
         </div>
 
         <div style="padding:96px 0 88px;max-width:760px;">
-          <div style="${mono}font-size:11.5px;letter-spacing:0.18em;color:var(--t-muted);text-transform:uppercase;margin-bottom:26px;">A community reading commons</div>
-          <h1 style="margin:0;font-size:58px;line-height:1.04;letter-spacing:-0.03em;font-weight:700;">The best reading on AI in higher education, in one place.</h1>
-          <p style="margin:30px 0 0;font-size:18px;line-height:1.6;color:var(--t-2);max-width:620px;">An open, curated index of articles and websites on how artificial intelligence is reshaping teaching, research, and academic life — collected, rated, and discussed by the people doing the work.</p>
+          <div style="${mono}font-size:11.5px;letter-spacing:0.18em;color:var(--t-muted);text-transform:uppercase;margin-bottom:26px;">A community commons of readings &amp; resources</div>
+          <h1 style="margin:0;font-size:58px;line-height:1.04;letter-spacing:-0.03em;font-weight:700;">The best readings and resources on AI in higher education, in one place.</h1>
+          <p style="margin:30px 0 0;font-size:18px;line-height:1.6;color:var(--t-2);max-width:620px;">An open, curated index of articles and websites on how artificial intelligence is reshaping teaching, research, and academic life — collected, rated, and discussed by the people doing the work — alongside a companion collection of practical artefacts for EAP teaching.</p>
           <div style="display:flex;align-items:center;gap:14px;margin-top:40px;flex-wrap:wrap;">
             <button data-action="enter" class="h-lift" style="padding:14px 26px;background:var(--t-1);color:var(--bg);border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;">Browse the library →</button>
             <button data-action="open-suggest" class="h-bd" style="padding:14px 24px;background:transparent;color:var(--t-1);border:1px solid var(--line3);border-radius:10px;font-size:15px;font-weight:500;cursor:pointer;">Suggest a link</button>
@@ -135,9 +137,20 @@ const EDUApp = (function () {
           <div class="edu-cats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;">${cats}</div>
         </div>
 
-        <div style="padding:0 0 96px;">
+        <div style="padding:0 0 84px;">
           <div style="${mono}font-size:11px;letter-spacing:0.14em;color:var(--t-muted);text-transform:uppercase;margin-bottom:24px;">Top rated right now</div>
           <div style="display:flex;flex-direction:column;">${top || '<div style="color:var(--t-faint);' + mono + 'font-size:13px;padding:18px 0;">No readings yet.</div>'}</div>
+        </div>
+
+        <div style="padding:0 0 96px;">
+          <div style="position:relative;overflow:hidden;border:1px solid var(--line2);border-radius:16px;padding:38px 36px;background:var(--card);">
+            <div style="${mono}font-size:11px;letter-spacing:0.16em;color:var(--t-muted);text-transform:uppercase;margin-bottom:14px;">A companion collection</div>
+            <h2 style="margin:0;font-size:clamp(26px,3.2vw,32px);font-weight:700;letter-spacing:-0.02em;">AI artefacts for use in EAP</h2>
+            <p style="margin:14px 0 0;font-size:15.5px;line-height:1.6;color:var(--t-2);max-width:600px;">Practical, classroom-ready resources for English for Academic Purposes — skills, prompts, frameworks and documents you can adapt and use in teaching, curated and moderated by practitioners. A separate, purpose-built library that sits alongside the readings.</p>
+            <div style="margin-top:26px;">
+              <a href="EAP%20AI%20Commons.html" class="h-lift" style="display:inline-flex;align-items:center;gap:8px;padding:13px 22px;background:var(--t-1);color:var(--bg);border-radius:10px;font-size:14.5px;font-weight:600;text-decoration:none;">Open the artefacts library →</a>
+            </div>
+          </div>
         </div>
 
         <div style="padding:30px 0 60px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
@@ -251,6 +264,7 @@ const EDUApp = (function () {
 
   function resultsHtml() {
     const s = state;
+    if (s.category === 'review') return reviewHtml();
     const inSaved = s.category === 'readlater';
     const list = currentList();
     const cards = s.view === 'cards';
@@ -284,12 +298,55 @@ const EDUApp = (function () {
     return `<div style="${container}">${rows}</div>`;
   }
 
+  // ---- moderation (admins only) ---------------------------------------------
+  function reviewNavHtml() {
+    const n = EDU.PENDING.length;
+    const on = state.category === 'review';
+    return `<button data-action="review" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px;margin-bottom:10px;background:${on ? 'var(--active)' : 'transparent'};border:1px solid ${on ? 'var(--line-hover)' : 'var(--line)'};border-radius:8px;cursor:pointer;text-align:left;">
+      <span style="display:flex;align-items:center;gap:8px;font-size:13.5px;color:${on ? 'var(--t-1)' : 'var(--t-label)'};font-weight:${on || n ? 600 : 400};"><span style="font-size:12px;">⚑</span> Review queue</span>
+      <span style="${mono}font-size:11px;color:${n ? 'var(--bg)' : 'var(--t-dim)'};background:${n ? 'var(--t-1)' : 'transparent'};border-radius:20px;padding:${n ? '1px 7px' : '0'};">${n}</span>
+    </button>`;
+  }
+
+  function reviewHtml() {
+    if (!state.isAdmin) return `<div style="text-align:center;padding:90px 20px;color:var(--t-faint);"><div style="font-size:15px;color:var(--t-3);">Editors only — sign in to review suggestions.</div></div>`;
+    const list = EDU.PENDING;
+    if (!list.length) return `<div style="text-align:center;padding:90px 20px;color:var(--t-faint);">
+        <div style="font-size:34px;margin-bottom:14px;">✓</div>
+        <div style="font-size:15px;color:var(--t-3);">Queue is clear</div>
+        <div style="${mono}font-size:12px;margin-top:8px;">New community suggestions will appear here for review.</div>
+      </div>`;
+    const cardFor = it => {
+      const cat = EDU.CATS.find(c => c.key === it.cat);
+      return `<article style="display:flex;flex-direction:column;gap:12px;padding:22px;background:var(--card);border:1px solid var(--line2);border-radius:14px;margin-bottom:14px;">
+        <div style="min-width:0;">
+          <a href="${esc(it.url)}" target="_blank" rel="noopener" class="h-underline" style="font-size:16px;font-weight:600;color:var(--t-1);text-decoration:none;line-height:1.35;">${esc(it.title)}</a>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:7px;${mono}font-size:11.5px;color:var(--t-muted);">
+            <span style="color:var(--t-label);letter-spacing:0.06em;">${it.type === 'article' ? 'ARTICLE' : 'WEBSITE'}</span>
+            <span style="color:var(--sep);">·</span><span>${esc(it.domain)}</span>
+            <span style="color:var(--sep);">·</span><span style="color:var(--t-label);">${esc(cat ? cat.label : it.cat)}</span>
+            <span style="color:var(--sep);">·</span><span>by ${esc(it.contributor || 'Anonymous')}</span>
+          </div>
+        </div>
+        ${it.description ? `<p style="margin:0;font-size:13.5px;color:var(--t-2);line-height:1.6;max-width:680px;">${esc(it.description)}</p>` : ''}
+        ${it.tags.length ? `<div style="display:flex;gap:7px;flex-wrap:wrap;">${it.tags.map(t => `<span style="${mono}font-size:10.5px;color:var(--t-label);background:var(--field);border:1px solid var(--line2);border-radius:5px;padding:3px 8px;">#${esc(t)}</span>`).join('')}</div>` : ''}
+        <div style="display:flex;align-items:center;gap:10px;margin-top:2px;">
+          <button data-action="approve" data-id="${it.id}" class="h-accent" style="display:flex;align-items:center;gap:7px;padding:9px 16px;background:var(--t-1);color:var(--bg);border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">✓ Approve &amp; publish</button>
+          <button data-action="reject" data-id="${it.id}" class="h-bd" style="display:flex;align-items:center;gap:7px;padding:9px 16px;background:transparent;color:var(--t-2);border:1px solid var(--line3);border-radius:8px;font-size:13px;cursor:pointer;">✕ Reject</button>
+        </div>
+      </article>`;
+    };
+    return `<div style="max-width:720px;">${list.map(cardFor).join('')}</div>`;
+  }
+
   function appHtml() {
     const s = state;
     const inSaved = s.category === 'readlater';
+    const inReview = s.category === 'review';
     const curCat = EDU.CATS.find(c => c.key === s.category) || EDU.CATS[0];
-    const label = inSaved ? 'Read later' : curCat.label;
-    const blurb = inSaved ? 'Readings you saved to revisit. They stay here until you remove them.' : curCat.blurb;
+    const label = inReview ? 'Review queue' : inSaved ? 'Read later' : curCat.label;
+    const blurb = inReview ? 'Community suggestions awaiting an editor’s decision — approve to publish, or reject to discard.'
+      : inSaved ? 'Readings you saved to revisit. They stay here until you remove them.' : curCat.blurb;
     const saved = EDU.savedCount();
     const sortDefs = [['top', 'Top'], ['new', 'Newest'], ['rated', 'Rated']];
     const viewDefs = [['list', '☰', 'List'], ['cards', '▦', 'Cards']];
@@ -309,7 +366,7 @@ const EDUApp = (function () {
         <div data-action="gohome" title="Back to home" style="padding:26px 22px 18px;cursor:pointer;">
           <div style="${mono}font-size:10.5px;letter-spacing:0.22em;color:var(--t-eyebrow);text-transform:uppercase;margin-bottom:12px;">← Home</div>
           <div style="font-size:21px;font-weight:700;letter-spacing:-0.01em;line-height:1.15;">AI Commons<br>for Education</div>
-          <div style="font-size:12.5px;color:var(--t-3);line-height:1.5;margin-top:8px;">A community-curated index of links &amp; readings on artificial intelligence in academia.</div>
+          <div style="font-size:12.5px;color:var(--t-3);line-height:1.5;margin-top:8px;">A community-curated index of readings — plus practical artefacts — on artificial intelligence in academia.</div>
         </div>
         <div style="padding:0 16px 12px;">
           <div style="display:flex;align-items:center;gap:8px;background:var(--field);border:1px solid var(--line2);border-radius:9px;padding:8px 11px;">
@@ -326,8 +383,15 @@ const EDUApp = (function () {
         <div style="${mono}font-size:9.5px;letter-spacing:0.16em;color:var(--t-dim);text-transform:uppercase;padding:8px 22px 6px;">Categories</div>
         <nav class="edu-scroll" style="flex:1;overflow-y:auto;padding:0 12px 4px;">${navHtml()}</nav>
         <div style="padding:16px;border-top:1px solid var(--line);">
+          ${state.isAdmin ? reviewNavHtml() : ''}
           <button data-action="open-suggest" class="h-accent" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;background:var(--t-1);color:var(--bg);border:none;border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer;"><span style="font-size:15px;line-height:1;">＋</span> Suggest a link</button>
-          <div style="${mono}font-size:10.5px;color:var(--t-faint);text-align:center;margin-top:12px;letter-spacing:0.04em;">${EDU.ITEMS.length} links · ${saved} saved</div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:8px;${mono}font-size:10.5px;color:var(--t-faint);text-align:center;margin-top:12px;letter-spacing:0.04em;">
+            <span>${EDU.ITEMS.length} links · ${saved} saved</span>
+            <span style="color:var(--sep);">·</span>
+            ${state.isAdmin
+              ? `<button data-action="signout" class="h-txt" style="background:none;border:none;${mono}font-size:10.5px;color:var(--t-faint);cursor:pointer;padding:0;">Sign out</button>`
+              : `<button data-action="open-auth" class="h-txt" style="background:none;border:none;${mono}font-size:10.5px;color:var(--t-faint);cursor:pointer;padding:0;">Editor sign-in</button>`}
+          </div>
         </div>
       </aside>
 
@@ -342,11 +406,11 @@ const EDUApp = (function () {
           </div>
           <div style="display:flex;align-items:center;gap:14px;flex:none;">
             ${iconBtn('toggle-theme', themeGlyph(), themeTitle(), false)}
-            <button data-action="toggle-group" title="Group by tag" style="display:flex;align-items:center;gap:7px;padding:6px 11px;background:${grouping ? 'var(--t-1)' : 'transparent'};color:${grouping ? 'var(--bg)' : 'var(--t-label)'};border:1px solid ${grouping ? 'var(--t-1)' : 'var(--line2)'};border-radius:7px;font-size:12px;cursor:pointer;${mono}"><span style="font-size:12px;">⊞</span> By tag</button>
+            ${inReview ? '' : `<button data-action="toggle-group" title="Group by tag" style="display:flex;align-items:center;gap:7px;padding:6px 11px;background:${grouping ? 'var(--t-1)' : 'transparent'};color:${grouping ? 'var(--bg)' : 'var(--t-label)'};border:1px solid ${grouping ? 'var(--t-1)' : 'var(--line2)'};border-radius:7px;font-size:12px;cursor:pointer;${mono}"><span style="font-size:12px;">⊞</span> By tag</button>
             <div style="display:flex;align-items:center;gap:6px;">
               <span style="${mono}font-size:10.5px;color:var(--t-faint);letter-spacing:0.1em;text-transform:uppercase;margin-right:2px;">Sort</span>${sortBtns}
             </div>
-            <div style="display:flex;border:1px solid var(--line2);border-radius:7px;overflow:hidden;">${viewBtns}</div>
+            <div style="display:flex;border:1px solid var(--line2);border-radius:7px;overflow:hidden;">${viewBtns}</div>`}
           </div>
         </header>
         <div class="edu-scroll" style="flex:1;overflow-y:auto;padding:26px 34px 80px;">${resultsHtml()}</div>
@@ -404,6 +468,50 @@ const EDUApp = (function () {
     </div>`;
   }
 
+  function authModalHtml() {
+    if (!state.showAuth) return '';
+    const lbl = 'display:block;' + mono + 'font-size:10.5px;color:var(--t-muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:7px;';
+    const fld = 'width:100%;background:var(--field);border:1px solid var(--line2);border-radius:9px;padding:11px 13px;color:var(--t-1);font-size:13.5px;outline:none;';
+    const signedIn = !!state.user;
+    const isSignup = state.authMode === 'signup';
+    const msg = state.authMsg ? `<div style="${mono}font-size:11.5px;color:var(--t-3);margin:0 0 16px;">${esc(state.authMsg)}</div>` : '';
+
+    let body;
+    if (signedIn && state.isAdmin) {
+      body = `<p style="margin:0 0 22px;font-size:13px;color:var(--t-3);line-height:1.5;">You're signed in as <b style="color:var(--t-2);">${esc(state.user.email || 'an editor')}</b> and can moderate. Open the <b style="color:var(--t-2);">Review queue</b> in the sidebar.</p>
+        ${msg}
+        <div style="display:flex;justify-content:flex-end;gap:10px;"><button data-action="signout" style="padding:10px 18px;background:transparent;color:var(--t-2);border:1px solid var(--line3);border-radius:9px;font-size:13px;cursor:pointer;">Sign out</button><button data-action="close-auth" style="padding:10px 20px;background:var(--t-1);color:var(--bg);border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;">Done</button></div>`;
+    } else if (signedIn) {
+      body = `<p style="margin:0 0 22px;font-size:13px;color:var(--t-3);line-height:1.5;">You're signed in as <b style="color:var(--t-2);">${esc(state.user.email || '')}</b> but not yet an editor. If this library has no editors yet, you can claim editor access.</p>
+        ${msg}
+        <div style="display:flex;justify-content:space-between;gap:10px;"><button data-action="signout" style="padding:10px 18px;background:transparent;color:var(--t-2);border:1px solid var(--line3);border-radius:9px;font-size:13px;cursor:pointer;">Sign out</button><button data-action="auth-claim" style="padding:10px 20px;background:var(--t-1);color:var(--bg);border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;">Become an editor</button></div>`;
+    } else {
+      body = `<label style="${lbl}">Email</label>
+        <input data-au="email" type="email" autocomplete="username" value="${esc(state.auth.email)}" placeholder="you@university.edu" style="${fld}margin-bottom:18px;" />
+        <label style="${lbl}">Password</label>
+        <input data-au="password" data-enter="auth" type="password" autocomplete="${isSignup ? 'new-password' : 'current-password'}" placeholder="••••••••" style="${fld}margin-bottom:18px;" />
+        ${msg}
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;">
+          <button data-action="auth-toggle" class="h-txt" style="background:none;border:none;${mono}font-size:11.5px;color:var(--t-muted);cursor:pointer;padding:0;">${isSignup ? 'Have an account? Sign in' : 'Create an account'}</button>
+          <div style="display:flex;gap:10px;">
+            <button data-action="close-auth" style="padding:10px 18px;background:transparent;color:var(--t-2);border:1px solid var(--line3);border-radius:9px;font-size:13px;cursor:pointer;">Cancel</button>
+            <button data-action="auth-submit" style="padding:10px 20px;background:var(--t-1);color:var(--bg);border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;">${isSignup ? 'Create account' : 'Sign in'}</button>
+          </div>
+        </div>`;
+    }
+
+    return `<div id="edu-auth-backdrop" style="position:fixed;inset:0;background:rgba(4,4,5,0.74);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;z-index:50;animation:ovIn .16s ease;">
+      <div style="width:440px;max-width:92vw;max-height:88vh;overflow-y:auto;background:var(--modal);border:1px solid var(--line2);border-radius:16px;padding:30px;animation:modIn .2s cubic-bezier(.2,.8,.3,1);">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:6px;">
+          <h2 style="margin:0;font-size:19px;font-weight:700;letter-spacing:-0.01em;">Editor access</h2>
+          <button data-action="close-auth" style="background:transparent;border:none;color:var(--t-muted);font-size:20px;cursor:pointer;line-height:1;padding:0;">✕</button>
+        </div>
+        ${signedIn ? '' : `<p style="margin:0 0 22px;font-size:13px;color:var(--t-3);line-height:1.5;">Moderating community suggestions is limited to approved editors. Browsing stays open to everyone.</p>`}
+        ${body}
+      </div>
+    </div>`;
+  }
+
   function toastHtml() {
     if (!state.toast) return '';
     return `<div style="position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:var(--t-1);color:var(--bg);padding:11px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:60;animation:toastIn .24s cubic-bezier(.2,.8,.3,1);box-shadow:0 8px 30px rgba(0,0,0,0.5);">${esc(state.toast)}</div>`;
@@ -412,7 +520,7 @@ const EDUApp = (function () {
   // ---- render + events ------------------------------------------------------
   function render(opts) {
     opts = opts || {};
-    root.innerHTML = (state.screen === 'home' ? homeHtml() : appHtml()) + modalHtml() + toastHtml();
+    root.innerHTML = (state.screen === 'home' ? homeHtml() : appHtml()) + modalHtml() + authModalHtml() + toastHtml();
     if (opts.focus === 'search') {
       const el = root.querySelector('#edu-search');
       if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
@@ -425,6 +533,7 @@ const EDUApp = (function () {
     root.addEventListener('click', async e => {
       // clicking the dimmed backdrop (but not the sheet) closes the modal
       if (e.target.id === 'edu-suggest-backdrop') { state.showSuggest = false; render(); return; }
+      if (e.target.id === 'edu-auth-backdrop') { state.showAuth = false; render(); return; }
       const t = e.target.closest('[data-action]');
       if (!t) return;
       const a = t.dataset.action, id = t.dataset.id;
@@ -454,6 +563,15 @@ const EDUApp = (function () {
         case 'suggest-cat': state.suggest.category = t.dataset.cat; render(); break;
         case 'suggest-type': state.suggest.type = t.dataset.type; render(); break;
         case 'submit-suggest': await submitSuggest(); break;
+        case 'review': state.category = 'review'; state.activeTag = null; state.groupByTag = false; state.screen = 'app'; render(); break;
+        case 'approve': await doModerate(id, 'approve'); break;
+        case 'reject': await doModerate(id, 'reject'); break;
+        case 'open-auth': state.showAuth = true; state.authMsg = ''; render(); break;
+        case 'close-auth': state.showAuth = false; render(); break;
+        case 'auth-toggle': state.authMode = state.authMode === 'signin' ? 'signup' : 'signin'; state.authMsg = ''; render(); break;
+        case 'auth-submit': await doAuthSubmit(); break;
+        case 'auth-claim': await doClaim(); break;
+        case 'signout': await doSignOut(); break;
       }
     });
 
@@ -463,6 +581,7 @@ const EDUApp = (function () {
       if (el.dataset.draft) { state.drafts[el.dataset.draft] = el.value; return; }
       if (el.dataset.tagdraft) { state.tagDrafts[el.dataset.tagdraft] = el.value; return; }
       if (el.dataset.sg) { state.suggest[el.dataset.sg] = el.value; return; }
+      if (el.dataset.au) { state.auth[el.dataset.au] = el.value; return; }
     });
 
     root.addEventListener('keydown', async e => {
@@ -470,7 +589,53 @@ const EDUApp = (function () {
       const el = e.target;
       if (el.dataset.enter === 'post-comment') { e.preventDefault(); await postComment(el.dataset.draft); }
       else if (el.dataset.enter === 'add-tag') { e.preventDefault(); await addTag(el.dataset.tagdraft); }
+      else if (el.dataset.enter === 'auth') { e.preventDefault(); await doAuthSubmit(); }
     });
+  }
+
+  // ---- auth + moderation ----------------------------------------------------
+  async function refreshAuth() {
+    try {
+      state.user = await Auth.user();
+      state.isAdmin = state.user ? await Auth.isAdmin() : false;
+    } catch (e) { state.user = null; state.isAdmin = false; }
+  }
+  async function afterAuthChange() {
+    await refreshAuth();
+    state.auth.password = '';
+    await EDU.reload();            // re-fetch so an admin now sees the pending queue
+    if (state.isAdmin) state.showAuth = false;
+    render();
+  }
+  async function doAuthSubmit() {
+    const email = state.auth.email.trim(), password = state.auth.password;
+    if (!email || !password) { state.authMsg = 'Enter an email and password.'; render(); return; }
+    state.authMsg = 'Working…'; render();
+    const fn = state.authMode === 'signin' ? Auth.signIn : Auth.signUp;
+    const { error } = await fn(email, password);
+    if (error) { state.authMsg = error.message; render(); return; }
+    if (state.authMode === 'signup') state.authMsg = 'Account created. If email confirmation is on, confirm then sign in.';
+    await afterAuthChange();
+  }
+  async function doClaim() {
+    const { data, error } = await Auth.claimFirstAdmin();
+    if (error) { state.authMsg = error.message; render(); return; }
+    state.authMsg = data ? 'You are now an editor.' : 'An editor already exists — ask them to add you.';
+    await afterAuthChange();
+  }
+  async function doSignOut() {
+    await Auth.signOut();
+    await refreshAuth();
+    if (state.category === 'review') state.category = 'all';
+    state.showAuth = false;
+    await EDU.reload();
+    render();
+  }
+  async function doModerate(id, kind) {
+    try {
+      if (kind === 'approve') { await EDU.approve(id); flash('Approved & published'); }
+      else { await EDU.reject(id); flash('Suggestion rejected'); }
+    } catch (err) { flash(err.message || 'Action failed — are you signed in as an editor?'); }
   }
 
   async function postComment(id) {
@@ -514,7 +679,7 @@ const EDUApp = (function () {
     bind();
     root.innerHTML = `<div style="height:100vh;display:grid;place-items:center;color:var(--t-faint);${mono}font-size:13px;">Loading the commons…</div>`;
     try {
-      await EDU.load();
+      await Promise.all([EDU.load(), refreshAuth()]);
       deepLink();
       render();
     } catch (err) {

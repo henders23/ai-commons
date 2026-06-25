@@ -40,6 +40,14 @@ the artefact pages below remain and will be re-skinned into the same shell.
   and a `submit_rating` overload — so readings reuse the same engine while the
   artefact pages keep working unchanged.
 
+### Moderating readings
+
+Signed-in editors get an **Editor sign-in** link in the readings sidebar (claim
+the first admin via "Become an editor" while the `admins` table is empty). Once
+an admin, a **Review queue** appears in the sidebar listing pending suggestions
+with **Approve & publish** / **Reject** — backed by the readings UPDATE RLS
+policy, so non-editors can never moderate even if they reach the view.
+
 ## Pages
 
 - **`EAP AI Commons.html`** — home: hero, a 2×3 grid of the six categories
