@@ -7,6 +7,39 @@ documents and links, backed by Supabase.
 Implemented from a Claude Design handoff bundle: a static HTML/CSS/JS front end
 talking to a Supabase (Postgres + Storage + Auth) backend.
 
+## Readings library — "AI Commons for Education"
+
+The site's front door (`index.html` → `Library.html`) is a community **reading
+commons**: a curated, votable, rateable, discussable index of articles and
+websites on AI in higher education. Built from the `Library.dc.html` handoff;
+the artefact pages below remain and will be re-skinned into the same shell.
+
+- **`Library.html`** — a single-page app with two screens: a **home** (hero,
+  "How it works", category grid, "Top rated") and an **app** (sidebar search /
+  Read-later / category nav / Suggest-a-link + a main pane of ranked reading rows
+  with upvote/score, inline star rating, tags, and a comment thread). Own visual
+  system (IBM Plex Mono + Helvetica Neue) with a **light/dark theme toggle**.
+- `edu.css` — readings design tokens (light/dark via `[data-theme]`), scoped
+  under `.edu` so it never collides with the artefact pages' `commons.css`.
+- `readings-data.js` — async data access for readings, categories, the visitor's
+  votes/ratings, and comments; Read-later lives in `localStorage`.
+- `readings.js` — the app logic (`EDUApp.mount(el)`): render + all interactions.
+
+### Readings backend
+
+- `reading_categories` — the 6 community buckets (policy, pedagogy, ethics,
+  research, tools, student).
+- `readings` — external article/website rows with a `status` (`pending` /
+  `approved`): **anyone can suggest** via the `suggest_reading()` RPC, landing in
+  a moderation queue; only admins approve (RLS).
+- `reading_votes` + `vote_reading()` RPC — one −1/0/+1 vote per visitor; `score`
+  is `base_score + Σ votes` (the `reading_cards` view, `security_invoker`).
+- `add_reading_tag()` RPC — append-only community tagging on approved readings.
+- **Polymorphic social**: `ratings`/`comments` gained `target_type` + `target_id`
+  (kept in sync with `artefact_id` by a trigger), a generic `rating_stats` view,
+  and a `submit_rating` overload — so readings reuse the same engine while the
+  artefact pages keep working unchanged.
+
 ## Pages
 
 - **`EAP AI Commons.html`** — home: hero, a 2×3 grid of the six categories
