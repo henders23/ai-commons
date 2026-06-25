@@ -52,92 +52,59 @@ const EDUApp = (function () {
   }
 
   // ---- small markup helpers -------------------------------------------------
-  function iconBtn(action, glyph, title, big) {
-    const sz = big ? 'width:34px;height:32px;' : 'width:32px;height:30px;';
-    return `<button data-action="${action}" title="${esc(title)}" class="h-bd"
-      style="display:flex;align-items:center;justify-content:center;${sz}background:transparent;color:var(--t-muted);border:1px solid var(--line2);border-radius:${big ? 8 : 7}px;font-size:14px;cursor:pointer;">${glyph}</button>`;
-  }
-  const themeGlyph = () => state.theme === 'dark' ? '☀' : '☾';
+  const themeGlyph = () => state.theme === 'dark' ? '☾' : '☀';
+  const themeLabel = () => state.theme === 'dark' ? 'Dark' : 'Light';
   const themeTitle = () => state.theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme';
+  function themeToggleBtn(big) {
+    const pad = big ? '8px 14px' : '7px 11px';
+    return `<button data-action="toggle-theme" title="${esc(themeTitle())}" class="h-bd"
+      style="display:inline-flex;align-items:center;gap:7px;padding:${pad};background:transparent;color:var(--t-muted);border:1px solid var(--line2);border-radius:${big ? 9 : 7}px;font-size:${big ? 13 : 12}px;cursor:pointer;${mono}"><span style="font-size:14px;line-height:1;">${themeGlyph()}</span> ${themeLabel()} mode</button>`;
+  }
 
   // ---- HOME screen ----------------------------------------------------------
+  // Two identical "access" bands (library + artefacts) keep the start page clean.
+  function accessBand(o) {
+    return `<div class="edu-band" style="position:relative;overflow:hidden;border:1px solid var(--line2);border-radius:18px;padding:clamp(26px,4vw,44px);background:radial-gradient(130% 130% at 100% 0%, color-mix(in srgb, var(--t-1) 5%, transparent), transparent 55%), var(--bg2);">
+      <h2 style="margin:0;font-size:clamp(23px,3.2vw,31px);font-weight:700;letter-spacing:-0.02em;">${esc(o.title)}</h2>
+      <p style="margin:14px 0 0;font-size:15.5px;line-height:1.6;color:var(--t-2);max-width:620px;">${esc(o.body)}</p>
+      <div style="display:flex;align-items:center;gap:12px;margin-top:26px;flex-wrap:wrap;">${o.primary}${o.secondary || ''}</div>
+    </div>`;
+  }
+
   function homeHtml() {
-    const cnt = counts();
-    const cats = EDU.CATS.filter(c => c.key !== 'all').map(c => `
-      <button data-action="browse-cat" data-cat="${c.key}" class="h-card"
-        style="text-align:left;background:var(--card);border:1px solid var(--line);border-radius:13px;padding:22px 22px 24px;cursor:pointer;transition:border-color .14s;">
-        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:10px;">
-          <span style="font-size:16px;font-weight:600;color:var(--t-1);">${esc(c.label)}</span>
-          <span style="${mono}font-size:12px;color:var(--t-dim);">${cnt[c.key] || 0}</span>
-        </div>
-        <div style="font-size:13px;color:var(--t-3);line-height:1.55;">${esc(c.blurb)}</div>
-      </button>`).join('');
-    const top = [...EDU.ITEMS].sort((a, b) => b.score - a.score).slice(0, 3).map(it => {
-      const avg = EDU.ratingAvg(it);
-      return `<button data-action="open-reading" data-id="${it.id}" class="h-row"
-        style="display:flex;align-items:center;gap:18px;text-align:left;background:transparent;border:none;border-top:1px solid var(--line);padding:18px 4px;cursor:pointer;">
-        <span style="${mono}font-size:13px;font-weight:600;color:var(--t-1);width:38px;flex:none;">▲ ${it.score}</span>
-        <span style="flex:1;min-width:0;">
-          <span style="display:block;font-size:15.5px;font-weight:600;color:var(--t-1);line-height:1.35;">${esc(it.title)}</span>
-          <span style="display:block;margin-top:5px;${mono}font-size:11.5px;color:var(--t-muted);">${it.type === 'article' ? 'ARTICLE' : 'WEBSITE'} · ${esc(it.domain)} · ★ ${avg > 0 ? avg.toFixed(1) : '—'}</span>
-        </span>
-        <span style="${mono}font-size:12px;color:var(--t-dim);flex:none;">Open →</span>
-      </button>`;
-    }).join('');
+    const lib = accessBand({
+      title: 'The AI Commons Library',
+      body: 'Access an open collection of readings, artefacts and activities to help educators navigate the challenges and opportunities of artificial intelligence in teaching, learning and course design.',
+      primary: `<button data-action="enter" class="h-lift" style="display:inline-flex;align-items:center;gap:8px;padding:14px 24px;background:var(--t-1);color:var(--bg);border:none;border-radius:10px;font-size:14.5px;font-weight:600;cursor:pointer;">Browse the library →</button>`,
+      secondary: `<button data-action="open-suggest" class="h-bd" style="padding:14px 22px;background:transparent;color:var(--t-1);border:1px solid var(--line3);border-radius:10px;font-size:14.5px;font-weight:500;cursor:pointer;">Suggest a link</button>`,
+    });
+    const art = accessBand({
+      title: 'AI artefacts for use in EAP',
+      body: 'Practical, classroom-ready resources for English for Academic Purposes — skills, prompts, frameworks and documents you can adapt and use in teaching, curated and moderated by practitioners.',
+      primary: `<a href="EAP%20AI%20Commons.html" class="h-lift" style="display:inline-flex;align-items:center;gap:8px;padding:14px 24px;background:var(--t-1);color:var(--bg);border-radius:10px;font-size:14.5px;font-weight:600;text-decoration:none;">Open the artefacts library →</a>`,
+    });
 
     return `<div class="edu-scroll" style="height:100vh;overflow-y:auto;">
       <div class="edu-container" style="max-width:1080px;margin:0 auto;padding:0 40px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:20px;padding:26px 0;border-bottom:1px solid var(--line);">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:22px 0;border-bottom:1px solid var(--line);">
           <div style="${mono}font-size:11px;letter-spacing:0.2em;color:var(--t-eyebrow);text-transform:uppercase;">AI Commons · for Education</div>
-          ${iconBtn('toggle-theme', themeGlyph(), themeTitle(), true)}
+          ${themeToggleBtn(true)}
         </div>
 
-        <!-- ===== Readings ===== -->
-        <div style="padding:88px 0 72px;max-width:760px;">
-          <div style="${mono}font-size:11.5px;letter-spacing:0.18em;color:var(--t-muted);text-transform:uppercase;margin-bottom:26px;">The readings commons</div>
-          <h1 style="margin:0;font-size:clamp(40px,6vw,58px);line-height:1.04;letter-spacing:-0.03em;font-weight:700;">The best readings on AI in higher education, in one place.</h1>
-          <p style="margin:30px 0 0;font-size:18px;line-height:1.6;color:var(--t-2);max-width:600px;">An open, curated index of articles and websites on how artificial intelligence is reshaping teaching, research, and academic life — collected, rated, and discussed by the people doing the work.</p>
-          <div style="display:flex;align-items:center;gap:14px;margin-top:40px;flex-wrap:wrap;">
-            <button data-action="enter" class="h-lift" style="padding:14px 26px;background:var(--t-1);color:var(--bg);border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;">Browse the readings →</button>
-            <button data-action="open-suggest" class="h-bd" style="padding:14px 24px;background:transparent;color:var(--t-1);border:1px solid var(--line3);border-radius:10px;font-size:15px;font-weight:500;cursor:pointer;">Suggest a link</button>
-          </div>
-          <div style="display:flex;align-items:center;gap:22px;margin-top:36px;${mono}font-size:12px;color:var(--t-muted);flex-wrap:wrap;">
+        <div style="padding:clamp(52px,9vw,92px) 0 clamp(38px,6vw,60px);max-width:860px;">
+          <h1 style="margin:0;font-size:clamp(33px,6vw,56px);line-height:1.06;letter-spacing:-0.03em;font-weight:700;">AI-related readings, activities &amp; resources for higher educators.</h1>
+          <div style="display:flex;align-items:center;gap:20px;margin-top:32px;${mono}font-size:12px;color:var(--t-muted);flex-wrap:wrap;">
             <span><span style="color:var(--t-1);font-weight:600;">${EDU.ITEMS.length}</span> readings</span>
             <span style="color:var(--sep);">/</span>
             <span><span style="color:var(--t-1);font-weight:600;">6</span> categories</span>
             <span style="color:var(--sep);">/</span>
-            <span>community-rated &amp; discussed</span>
+            <span>open access · community-curated</span>
           </div>
         </div>
 
-        <div style="padding:0 0 64px;">
-          <div style="${mono}font-size:11px;letter-spacing:0.14em;color:var(--t-muted);text-transform:uppercase;margin-bottom:24px;">Browse by category</div>
-          <div class="edu-cats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;">${cats}</div>
-        </div>
-
-        <div style="padding:0 0 28px;">
-          <div style="${mono}font-size:11px;letter-spacing:0.14em;color:var(--t-muted);text-transform:uppercase;margin-bottom:18px;">Top rated right now</div>
-          <div style="display:flex;flex-direction:column;">${top || '<div style="color:var(--t-faint);' + mono + 'font-size:13px;padding:18px 0;">No readings yet.</div>'}</div>
-        </div>
-
-        <!-- ===== zone divider ===== -->
-        <div style="display:flex;align-items:center;gap:18px;padding:40px 0 38px;">
-          <span style="flex:1;height:1px;background:var(--line);"></span>
-          <span style="${mono}font-size:10.5px;letter-spacing:0.2em;color:var(--t-faint);text-transform:uppercase;white-space:nowrap;">Resources for teaching</span>
-          <span style="flex:1;height:1px;background:var(--line);"></span>
-        </div>
-
-        <!-- ===== Artefacts (single access point) ===== -->
-        <div style="padding:0 0 92px;">
-          <div style="position:relative;overflow:hidden;border:1px solid var(--line2);border-radius:18px;padding:clamp(32px,4vw,48px);background:radial-gradient(130% 130% at 100% 0%, color-mix(in srgb, var(--t-1) 5%, transparent), transparent 55%), var(--bg2);">
-            <div style="${mono}font-size:11px;letter-spacing:0.16em;color:var(--t-muted);text-transform:uppercase;margin-bottom:14px;">A companion collection · for EAP teaching</div>
-            <h2 style="margin:0;font-size:clamp(26px,3.4vw,34px);font-weight:700;letter-spacing:-0.02em;">AI artefacts for use in EAP</h2>
-            <p style="margin:14px 0 0;font-size:15.5px;line-height:1.6;color:var(--t-2);max-width:600px;">Practical, classroom-ready resources for English for Academic Purposes — skills, prompts, frameworks and documents you can adapt and use in teaching, curated and moderated by practitioners.</p>
-            <div style="${mono}font-size:11.5px;color:var(--t-muted);letter-spacing:0.02em;margin-top:18px;">Skills · Frameworks · Prompts · Documents · Links</div>
-            <div style="margin-top:28px;">
-              <a href="EAP%20AI%20Commons.html" class="h-lift" style="display:inline-flex;align-items:center;gap:8px;padding:14px 24px;background:var(--t-1);color:var(--bg);border-radius:10px;font-size:14.5px;font-weight:600;text-decoration:none;">Open the artefacts library →</a>
-            </div>
-          </div>
+        <div class="edu-access" style="display:flex;flex-direction:column;gap:18px;padding:0 0 72px;">
+          ${lib}
+          ${art}
         </div>
 
         <div style="padding:26px 0 60px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;${mono}font-size:11px;color:var(--t-faint);letter-spacing:0.04em;">
@@ -365,7 +332,7 @@ const EDUApp = (function () {
           </button>
         </div>
         <div style="${mono}font-size:9.5px;letter-spacing:0.16em;color:var(--t-dim);text-transform:uppercase;padding:8px 22px 6px;">Categories</div>
-        <nav class="edu-scroll" style="flex:1;overflow-y:auto;padding:0 12px 4px;">${navHtml()}</nav>
+        <nav class="edu-scroll edu-nav" style="flex:1;overflow-y:auto;padding:0 12px 4px;">${navHtml()}</nav>
         <div style="padding:16px;border-top:1px solid var(--line);">
           ${state.isAdmin ? reviewNavHtml() : ''}
           <button data-action="open-suggest" class="h-accent" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;background:var(--t-1);color:var(--bg);border:none;border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer;"><span style="font-size:15px;line-height:1;">＋</span> Suggest a link</button>
@@ -379,8 +346,8 @@ const EDUApp = (function () {
         </div>
       </aside>
 
-      <main style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
-        <header style="padding:24px 34px 18px;border-bottom:1px solid var(--line);display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex:none;">
+      <main class="edu-main" style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+        <header class="edu-appheader" style="padding:24px 34px 18px;border-bottom:1px solid var(--line);display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex:none;">
           <div style="min-width:0;">
             <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
               <h1 style="margin:0;font-size:22px;font-weight:700;letter-spacing:-0.01em;">${esc(label)}</h1>
@@ -388,8 +355,8 @@ const EDUApp = (function () {
             </div>
             <p style="margin:6px 0 0;font-size:13px;color:var(--t-3);line-height:1.45;max-width:560px;">${esc(blurb)}</p>
           </div>
-          <div style="display:flex;align-items:center;gap:14px;flex:none;">
-            ${iconBtn('toggle-theme', themeGlyph(), themeTitle(), false)}
+          <div class="edu-tools" style="display:flex;align-items:center;gap:14px;flex:none;">
+            ${themeToggleBtn(false)}
             ${inReview ? '' : `<button data-action="toggle-group" title="Group by tag" style="display:flex;align-items:center;gap:7px;padding:6px 11px;background:${grouping ? 'var(--t-1)' : 'transparent'};color:${grouping ? 'var(--bg)' : 'var(--t-label)'};border:1px solid ${grouping ? 'var(--t-1)' : 'var(--line2)'};border-radius:7px;font-size:12px;cursor:pointer;${mono}"><span style="font-size:12px;">⊞</span> By tag</button>
             <div style="display:flex;align-items:center;gap:6px;">
               <span style="${mono}font-size:10.5px;color:var(--t-faint);letter-spacing:0.1em;text-transform:uppercase;margin-right:2px;">Sort</span>${sortBtns}
@@ -397,7 +364,7 @@ const EDUApp = (function () {
             <div style="display:flex;border:1px solid var(--line2);border-radius:7px;overflow:hidden;">${viewBtns}</div>`}
           </div>
         </header>
-        <div class="edu-scroll" style="flex:1;overflow-y:auto;padding:26px 34px 80px;">${resultsHtml()}</div>
+        <div class="edu-scroll edu-results" style="flex:1;overflow-y:auto;padding:26px 34px 80px;">${resultsHtml()}</div>
       </main>
     </div>`;
   }

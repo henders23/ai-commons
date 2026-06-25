@@ -262,9 +262,34 @@ function wireNavSearch() {
   });
 }
 
+// ---- theme toggle (shared aice-theme preference across the whole site) ----
+function mountThemeToggle() {
+  const nav = qs('.nav-in');
+  if (!nav) return;
+  const cur = () => document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'btn btn-sm theme-toggle';
+  const paint = () => {
+    const t = cur();
+    btn.innerHTML = `<span>${t === 'dark' ? '☾' : '☀'}</span><span>${t === 'dark' ? 'Dark' : 'Light'} mode</span>`;
+    btn.title = t === 'dark' ? 'Switch to light theme' : 'Switch to dark theme';
+  };
+  paint();
+  btn.addEventListener('click', () => {
+    const t = cur() === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', t);
+    try { localStorage.setItem('aice-theme', t); } catch (e) {}
+    paint();
+  });
+  const upload = nav.querySelector('[data-open-upload]');
+  upload ? nav.insertBefore(btn, upload) : nav.appendChild(btn);
+}
+
 // Chrome that needs data (modal category list) waits for loadData; the nav
-// search box is wired immediately so ⌘K / Enter work even before data lands.
+// search box + theme toggle are wired immediately so they work before data lands.
 document.addEventListener('DOMContentLoaded', () => {
   wireNavSearch();
+  mountThemeToggle();
   loadData().then(mountModal).catch(err => console.error('Failed to load library data', err));
 });
