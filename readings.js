@@ -10,11 +10,14 @@ const EDUApp = (function () {
 
   const state = {
     theme: (function () { try { return localStorage.getItem('aice-theme') || 'dark'; } catch (e) { return 'dark'; } })(),
-    screen: 'home', category: 'all', query: '', sort: 'top', view: 'list',
+    screen: 'home', section: 'readings', category: 'all', artCat: 'all',
+    query: '', sort: 'top', view: 'list',
     groupByTag: false, activeTag: null,
     expanded: {}, drafts: {}, tagDrafts: {},
     showSuggest: false,
     suggest: { url: '', title: '', category: 'policy', type: 'article', tags: '', description: '', contributor: '' },
+    showArtUpload: false, artUploadMsg: '',
+    artUpload: { kind: 'file', file: null, fileName: '', title: '', desc: '', howto: '', catName: '', level: '', tags: '', author: '' },
     user: null, isAdmin: false,
     showAuth: false, authMode: 'signin', authMsg: '', auth: { email: '', password: '' },
     toast: null, _toastT: null,
@@ -94,7 +97,7 @@ const EDUApp = (function () {
     const art = accessBand({
       title: 'AI artefacts for use in EAP',
       body: 'Practical, classroom-ready resources for English for Academic Purposes — skills, prompts, frameworks and documents you can adapt and use in teaching, curated and moderated by practitioners.',
-      primary: `<a href="EAP%20AI%20Commons.html" class="h-lift" style="display:inline-flex;align-items:center;gap:8px;padding:14px 24px;background:var(--t-1);color:var(--bg);border-radius:10px;font-size:14.5px;font-weight:600;text-decoration:none;">Open the artefacts library →</a>`,
+      primary: `<button data-action="enter-art" class="h-lift" style="display:inline-flex;align-items:center;gap:8px;padding:14px 24px;background:var(--t-1);color:var(--bg);border:none;border-radius:10px;font-size:14.5px;font-weight:600;cursor:pointer;">Open the artefacts library →</button>`,
     });
 
     return `<div class="edu-scroll" style="height:100vh;overflow-y:auto;">
@@ -307,18 +310,121 @@ const EDUApp = (function () {
     return `<div style="max-width:720px;">${list.map(cardFor).join('')}</div>`;
   }
 
+  // ---- artefacts section ----------------------------------------------------
+  function artCatName(id) { const c = ART.CATS.find(x => x.id === id); return c ? c.name : id; }
+  function artCounts() {
+    const c = { all: ART.ITEMS.length };
+    ART.CATS.forEach(k => { c[k.id] = ART.ITEMS.filter(a => a.cat === k.id).length; });
+    return c;
+  }
+  function artNavHtml() {
+    const cnt = artCounts();
+    const row = (id, name, n, on) => `<button data-action="art-cat" data-cat="${id}"
+      style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px;margin-bottom:2px;background:${on ? 'var(--active)' : 'transparent'};border:none;border-left:2px solid ${on ? 'var(--t-1)' : 'transparent'};border-radius:0 7px 7px 0;cursor:pointer;text-align:left;">
+      <span style="font-size:13.5px;color:${on ? 'var(--t-1)' : 'var(--t-label)'};font-weight:${on ? 600 : 400};">${esc(name)}</span>
+      <span style="${mono}font-size:11px;color:${on ? 'var(--t-label)' : 'var(--t-dim)'};">${n}</span></button>`;
+    return row('all', 'All artefacts', cnt.all, state.artCat === 'all') +
+      ART.CATS.map(c => row(c.id, c.name, cnt[c.id] || 0, state.artCat === c.id)).join('');
+  }
+  function artCurrentList() {
+    let list = ART.ITEMS.filter(a => state.artCat === 'all' || a.cat === state.artCat);
+    const q = state.query.trim().toLowerCase();
+    if (q) list = list.filter(a => (a.title + ' ' + a.desc + ' ' + a.tags.join(' ') + ' ' + a.level + ' ' + a.author).toLowerCase().includes(q));
+    return list;
+  }
+  function artRowHtml(it, cards) {
+    const expanded = !!state.expanded[it.id];
+    const cc = it.comments.length;
+    const href = it.type === 'doc' ? it.fileHref : it.link_url;
+    const titleTag = href
+      ? `<a href="${esc(href)}" target="_blank" rel="noopener" class="h-underline" style="font-size:15.5px;font-weight:600;color:var(--t-1);text-decoration:none;line-height:1.35;">${esc(it.title)}</a>`
+      : `<span style="font-size:15.5px;font-weight:600;color:var(--t-1);line-height:1.35;">${esc(it.title)}</span>`;
+    const primary = it.type === 'doc'
+      ? (it.fileHref ? `<a href="${esc(it.fileHref)}" target="_blank" rel="noopener" class="h-txt" style="${mono}font-size:11.5px;color:var(--t-muted);text-decoration:none;">Download ↓</a>` : '')
+      : (it.link_url ? `<a href="${esc(it.link_url)}" target="_blank" rel="noopener" class="h-txt" style="${mono}font-size:11.5px;color:var(--t-muted);text-decoration:none;">Open link ↗</a>` : '');
+    const desc = `<p style="${(cards || expanded)
+      ? 'margin:11px 0 0;font-size:13.5px;color:var(--t-2);line-height:1.6;max-width:640px;'
+      : 'margin:9px 0 0;font-size:13px;color:var(--t-listdesc);line-height:1.5;max-width:640px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'}">${esc(it.desc)}</p>`;
+    const expand = expanded ? `<div style="margin-top:18px;padding-top:18px;border-top:1px solid var(--line);">
+        ${it.howto ? `<div style="border:1px solid var(--line2);border-radius:12px;background:var(--card);padding:16px 18px;margin-bottom:20px;">
+          <div style="${mono}font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--t-muted);margin-bottom:8px;">How to use it</div>
+          <div style="font-size:13.5px;line-height:1.6;color:var(--t-2);">${esc(it.howto)}</div></div>` : ''}
+        <div style="display:flex;flex-wrap:wrap;gap:18px 26px;margin-bottom:20px;${mono}font-size:11.5px;color:var(--t-muted);">
+          ${it.level ? `<div><div style="color:var(--t-dim);margin-bottom:3px;">WHO IT'S FOR</div><div style="color:var(--t-2);">${esc(it.level)}</div></div>` : ''}
+          ${it.format ? `<div><div style="color:var(--t-dim);margin-bottom:3px;">FORMAT</div><div style="color:var(--t-2);">${esc(it.format)}</div></div>` : ''}
+          ${it.author ? `<div><div style="color:var(--t-dim);margin-bottom:3px;">CONTRIBUTOR</div><div style="color:var(--t-2);">${esc(it.author)}</div></div>` : ''}
+        </div>
+        ${it.tags.length ? `<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:20px;">${it.tags.map(t => `<span style="${mono}font-size:10.5px;color:var(--t-label);background:var(--field);border:1px solid var(--line2);border-radius:5px;padding:3px 8px;">#${esc(t)}</span>`).join('')}</div>` : ''}
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;">
+          <span style="${mono}font-size:11px;color:var(--t-muted);letter-spacing:0.06em;text-transform:uppercase;">Your rating</span>
+          <div style="display:flex;gap:3px;">${[1, 2, 3, 4, 5].map(n => `<span data-action="art-rate" data-id="${it.id}" data-star="${n}" style="font-size:18px;color:${n <= it.yourRating ? 'var(--t-1)' : 'var(--star-empty)'};cursor:pointer;line-height:1;">★</span>`).join('')}</div>
+          <span style="${mono}font-size:11px;color:var(--t-faint);">${it.yourRating > 0 ? it.yourRating + '/5' : 'tap to rate'}</span>
+        </div>
+        <div style="${mono}font-size:10.5px;color:var(--t-muted);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:12px;">Discussion · ${cc}</div>
+        ${it.comments.map(c => `<div style="display:flex;gap:11px;margin-bottom:15px;">
+          <div style="flex:none;width:28px;height:28px;border-radius:50%;border:1px solid var(--line3);display:flex;align-items:center;justify-content:center;${mono}font-size:10px;color:var(--t-label);">${esc(initials(c.author))}</div>
+          <div style="flex:1;min-width:0;"><div style="display:flex;align-items:baseline;gap:8px;margin-bottom:3px;"><span style="font-size:12.5px;font-weight:600;color:var(--t-author);">${esc(c.author)}</span><span style="${mono}font-size:10.5px;color:var(--t-faint);">${esc(c.when)}${c.mine ? ' · you' : ''}</span></div><div style="font-size:13px;color:var(--t-2);line-height:1.55;">${esc(c.text)}</div></div>
+        </div>`).join('')}
+        <div style="display:flex;gap:11px;margin-top:16px;">
+          <div style="flex:none;width:28px;height:28px;border-radius:50%;border:1px solid var(--line3);display:flex;align-items:center;justify-content:center;${mono}font-size:10px;color:var(--t-eyebrow);">YOU</div>
+          <div style="flex:1;display:flex;gap:8px;">
+            <input data-draft="${it.id}" data-enter="art-post" value="${esc(state.drafts[it.id] || '')}" placeholder="Add to the discussion…" style="flex:1;min-width:0;background:var(--field);border:1px solid var(--line2);border-radius:8px;padding:9px 12px;color:var(--t-1);font-size:13px;outline:none;" />
+            <button data-action="art-post" data-id="${it.id}" style="flex:none;padding:9px 16px;background:var(--t-1);color:var(--bg);border:none;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;">Post</button>
+          </div>
+        </div>
+      </div>` : '';
+    const rowStyle = cards
+      ? 'display:flex;flex-direction:column;gap:0;padding:20px;background:var(--card);border:1px solid var(--line);border-radius:14px;'
+      : 'display:flex;flex-direction:column;gap:0;padding:20px 6px;border-bottom:1px solid var(--line);';
+    return `<article style="${rowStyle}">
+      <div style="min-width:0;">
+        ${titleTag}
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:7px;${mono}font-size:11.5px;color:var(--t-muted);">
+          <span style="color:var(--t-label);letter-spacing:0.06em;">${it.type === 'doc' ? 'DOC' : 'LINK'}</span>
+          <span style="color:var(--sep);">·</span><span>${esc(artCatName(it.cat))}</span>
+          ${it.level ? `<span style="color:var(--sep);">·</span><span>${esc(it.level)}</span>` : ''}
+          <span style="color:var(--sep);">·</span><span style="color:var(--t-label);">★ ${it.avg > 0 ? it.avg.toFixed(1) : '—'}</span>
+          <span style="color:var(--t-faint);">${it.avg > 0 ? '(' + it.n + ')' : ''}</span>
+        </div>
+        ${desc}
+        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:12px;${mono}font-size:11.5px;">
+          <button data-action="toggle-row" data-id="${it.id}" style="display:flex;align-items:center;gap:6px;background:transparent;border:none;cursor:pointer;padding:0;${mono}font-size:11.5px;color:${expanded ? 'var(--t-1)' : 'var(--t-muted)'};"><span style="font-size:12px;">❝</span> ${cc === 0 ? 'Details &amp; discuss' : cc + (cc === 1 ? ' comment' : ' comments')} <span style="font-size:9px;">${expanded ? '▲' : '▼'}</span></button>
+          ${primary}
+        </div>
+        ${expand}
+      </div>
+    </article>`;
+  }
+  function artResultsHtml() {
+    const list = artCurrentList();
+    const cards = state.view === 'cards';
+    if (!list.length) {
+      return `<div style="text-align:center;padding:90px 20px;color:var(--t-faint);">
+        <div style="font-size:34px;margin-bottom:14px;">▦</div>
+        <div style="font-size:15px;color:var(--t-3);">${ART.ITEMS.length ? 'No artefacts match' : 'No artefacts yet'}</div>
+        <div style="${mono}font-size:12px;margin-top:8px;">${ART.ITEMS.length ? 'Try a different category or search.' : (state.isAdmin ? 'Use “Upload an artefact” to add the first one.' : 'Check back soon — editors are curating this library.')}</div>
+      </div>`;
+    }
+    const container = cards ? 'display:grid;grid-template-columns:repeat(2,1fr);gap:14px;align-items:start;' : 'display:flex;flex-direction:column;';
+    return `<div style="${container}">${list.map(it => artRowHtml(it, cards)).join('')}</div>`;
+  }
+
   function appHtml() {
     const s = state;
+    const sec = s.section;
     const inSaved = s.category === 'readlater';
     const inReview = s.category === 'review';
+    const art = sec === 'artefacts';
     const curCat = EDU.CATS.find(c => c.key === s.category) || EDU.CATS[0];
-    const label = inReview ? 'Review queue' : inSaved ? 'Read later' : curCat.label;
-    const blurb = inReview ? 'Community suggestions awaiting an editor’s decision — approve to publish, or reject to discard.'
-      : inSaved ? 'Readings you saved to revisit. They stay here until you remove them.' : curCat.blurb;
+    const artCur = ART.CATS.find(c => c.id === s.artCat);
+    const label = art ? (s.artCat === 'all' ? 'All artefacts' : (artCur ? artCur.name : 'Artefacts'))
+      : (inReview ? 'Review queue' : inSaved ? 'Read later' : curCat.label);
+    const blurb = art ? (s.artCat === 'all' ? 'Practical, classroom-ready resources for using AI in EAP teaching — curated and moderated by editors.' : (artCur ? artCur.blurb : ''))
+      : (inReview ? 'Community suggestions awaiting an editor’s decision — approve to publish, or reject to discard.'
+        : inSaved ? 'Readings you saved to revisit. They stay here until you remove them.' : curCat.blurb);
     const saved = EDU.savedCount();
     const sortDefs = [['top', 'Top'], ['new', 'Newest'], ['rated', 'Rated']];
     const viewDefs = [['list', '☰', 'List'], ['cards', '▦', 'Cards']];
-
     const sortBtns = sortDefs.map(([k, l]) => {
       const on = s.sort === k;
       return `<button data-action="sort" data-sort="${k}" style="padding:6px 11px;background:${on ? 'var(--t-1)' : 'transparent'};color:${on ? 'var(--bg)' : 'var(--t-label)'};border:1px solid ${on ? 'var(--t-1)' : 'var(--line2)'};border-radius:7px;font-size:12px;cursor:pointer;${mono}">${l}</button>`;
@@ -329,38 +435,56 @@ const EDUApp = (function () {
     }).join('');
     const grouping = s.groupByTag && !inSaved;
 
+    const tab = (key, name) => `<button data-action="switch-section" data-section="${key}" style="flex:1;padding:7px 10px;background:${sec === key ? 'var(--t-1)' : 'transparent'};color:${sec === key ? 'var(--bg)' : 'var(--t-label)'};border:none;border-radius:7px;font-size:12.5px;font-weight:600;cursor:pointer;${mono}">${name}</button>`;
+    const sectionToggle = `<div style="display:flex;gap:4px;background:var(--field);border:1px solid var(--line2);border-radius:9px;padding:4px;margin:0 16px 12px;">${tab('readings', 'Readings')}${tab('artefacts', 'Artefacts')}</div>`;
+    const authLine = stat => `<div style="display:flex;align-items:center;justify-content:center;gap:8px;${mono}font-size:10.5px;color:var(--t-faint);text-align:center;margin-top:12px;letter-spacing:0.04em;">
+        <span>${stat}</span><span style="color:var(--sep);">·</span>
+        ${state.isAdmin
+          ? `<button data-action="signout" class="h-txt" style="background:none;border:none;${mono}font-size:10.5px;color:var(--t-faint);cursor:pointer;padding:0;">Sign out</button>`
+          : `<button data-action="open-auth" class="h-txt" style="background:none;border:none;${mono}font-size:10.5px;color:var(--t-faint);cursor:pointer;padding:0;">Editor sign-in</button>`}
+      </div>`;
+
+    const sidebarMid = art
+      ? `<div style="${mono}font-size:9.5px;letter-spacing:0.16em;color:var(--t-dim);text-transform:uppercase;padding:8px 22px 6px;">Categories</div>
+         <nav class="edu-scroll edu-nav" style="flex:1;overflow-y:auto;padding:0 12px 4px;">${artNavHtml()}</nav>
+         <div style="padding:16px;border-top:1px solid var(--line);">
+           ${state.isAdmin ? `<button data-action="open-art-upload" class="h-accent" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;background:var(--t-1);color:var(--bg);border:none;border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer;"><span style="font-size:15px;line-height:1;">＋</span> Upload an artefact</button>` : ''}
+           ${authLine(ART.ITEMS.length + ' artefact' + (ART.ITEMS.length === 1 ? '' : 's'))}
+         </div>`
+      : `<div style="padding:0 12px 8px;">
+           <button data-action="readlater" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px;background:${inSaved ? 'var(--active)' : 'transparent'};border:1px solid ${inSaved ? 'var(--line-hover)' : 'var(--line)'};border-radius:8px;cursor:pointer;text-align:left;">
+             <span style="display:flex;align-items:center;gap:8px;font-size:13.5px;color:${inSaved ? 'var(--t-1)' : 'var(--t-label)'};font-weight:${inSaved ? 600 : 400};"><span style="font-size:13px;">❏</span> Read later</span>
+             <span style="${mono}font-size:11px;color:${inSaved ? 'var(--t-label)' : 'var(--t-dim)'};">${saved}</span>
+           </button>
+         </div>
+         <div style="${mono}font-size:9.5px;letter-spacing:0.16em;color:var(--t-dim);text-transform:uppercase;padding:8px 22px 6px;">Categories</div>
+         <nav class="edu-scroll edu-nav" style="flex:1;overflow-y:auto;padding:0 12px 4px;">${navHtml()}</nav>
+         <div style="padding:16px;border-top:1px solid var(--line);">
+           ${state.isAdmin ? reviewNavHtml() : ''}
+           <button data-action="open-suggest" class="h-accent" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;background:var(--t-1);color:var(--bg);border:none;border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer;"><span style="font-size:15px;line-height:1;">＋</span> Suggest a link</button>
+           ${authLine(EDU.ITEMS.length + ' links · ' + saved + ' saved')}
+         </div>`;
+
+    const tools = art
+      ? `${themeToggleBtn(false)}<div style="display:flex;border:1px solid var(--line2);border-radius:7px;overflow:hidden;">${viewBtns}</div>`
+      : `${themeToggleBtn(false)}${inReview ? '' : `<button data-action="toggle-group" title="Group by tag" style="display:flex;align-items:center;gap:7px;padding:6px 11px;background:${grouping ? 'var(--t-1)' : 'transparent'};color:${grouping ? 'var(--bg)' : 'var(--t-label)'};border:1px solid ${grouping ? 'var(--t-1)' : 'var(--line2)'};border-radius:7px;font-size:12px;cursor:pointer;${mono}"><span style="font-size:12px;">⊞</span> By tag</button>
+            <div style="display:flex;align-items:center;gap:6px;"><span style="${mono}font-size:10.5px;color:var(--t-faint);letter-spacing:0.1em;text-transform:uppercase;margin-right:2px;">Sort</span>${sortBtns}</div>
+            <div style="display:flex;border:1px solid var(--line2);border-radius:7px;overflow:hidden;">${viewBtns}</div>`}`;
+
     return `<div class="edu-app" style="display:flex;height:100vh;width:100%;">
       <aside class="edu-sidebar" style="width:278px;flex:none;border-right:1px solid var(--line);display:flex;flex-direction:column;background:var(--bg2);">
-        <div data-action="gohome" title="Back to home" style="padding:26px 22px 18px;cursor:pointer;">
+        <div data-action="gohome" title="Back to home" style="padding:26px 22px 14px;cursor:pointer;">
           <div style="${mono}font-size:10.5px;letter-spacing:0.22em;color:var(--t-eyebrow);text-transform:uppercase;margin-bottom:12px;">← Home</div>
           <div style="font-size:21px;font-weight:700;letter-spacing:-0.01em;line-height:1.15;">AI Commons<br>for Education</div>
-          <div style="font-size:12.5px;color:var(--t-3);line-height:1.5;margin-top:8px;">A community-curated index of readings — plus practical artefacts — on artificial intelligence in academia.</div>
         </div>
+        ${sectionToggle}
         <div style="padding:0 16px 12px;">
           <div style="display:flex;align-items:center;gap:8px;background:var(--field);border:1px solid var(--line2);border-radius:9px;padding:8px 11px;">
             <span style="color:var(--t-faint);font-size:13px;">⌕</span>
-            <input id="edu-search" value="${esc(s.query)}" placeholder="Search readings…" style="flex:1;min-width:0;background:transparent;border:none;outline:none;color:var(--t-1);font-size:13px;" />
+            <input id="edu-search" value="${esc(s.query)}" placeholder="${art ? 'Search artefacts…' : 'Search readings…'}" style="flex:1;min-width:0;background:transparent;border:none;outline:none;color:var(--t-1);font-size:13px;" />
           </div>
         </div>
-        <div style="padding:0 12px 8px;">
-          <button data-action="readlater" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px;background:${inSaved ? 'var(--active)' : 'transparent'};border:1px solid ${inSaved ? 'var(--line-hover)' : 'var(--line)'};border-radius:8px;cursor:pointer;text-align:left;">
-            <span style="display:flex;align-items:center;gap:8px;font-size:13.5px;color:${inSaved ? 'var(--t-1)' : 'var(--t-label)'};font-weight:${inSaved ? 600 : 400};"><span style="font-size:13px;">❏</span> Read later</span>
-            <span style="${mono}font-size:11px;color:${inSaved ? 'var(--t-label)' : 'var(--t-dim)'};">${saved}</span>
-          </button>
-        </div>
-        <div style="${mono}font-size:9.5px;letter-spacing:0.16em;color:var(--t-dim);text-transform:uppercase;padding:8px 22px 6px;">Categories</div>
-        <nav class="edu-scroll edu-nav" style="flex:1;overflow-y:auto;padding:0 12px 4px;">${navHtml()}</nav>
-        <div style="padding:16px;border-top:1px solid var(--line);">
-          ${state.isAdmin ? reviewNavHtml() : ''}
-          <button data-action="open-suggest" class="h-accent" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;background:var(--t-1);color:var(--bg);border:none;border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer;"><span style="font-size:15px;line-height:1;">＋</span> Suggest a link</button>
-          <div style="display:flex;align-items:center;justify-content:center;gap:8px;${mono}font-size:10.5px;color:var(--t-faint);text-align:center;margin-top:12px;letter-spacing:0.04em;">
-            <span>${EDU.ITEMS.length} links · ${saved} saved</span>
-            <span style="color:var(--sep);">·</span>
-            ${state.isAdmin
-              ? `<button data-action="signout" class="h-txt" style="background:none;border:none;${mono}font-size:10.5px;color:var(--t-faint);cursor:pointer;padding:0;">Sign out</button>`
-              : `<button data-action="open-auth" class="h-txt" style="background:none;border:none;${mono}font-size:10.5px;color:var(--t-faint);cursor:pointer;padding:0;">Editor sign-in</button>`}
-          </div>
-        </div>
+        ${sidebarMid}
       </aside>
 
       <main class="edu-main" style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
@@ -368,20 +492,13 @@ const EDUApp = (function () {
           <div style="min-width:0;">
             <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
               <h1 style="margin:0;font-size:22px;font-weight:700;letter-spacing:-0.01em;">${esc(label)}</h1>
-              ${s.activeTag ? `<button data-action="clear-tag" style="display:flex;align-items:center;gap:6px;background:var(--field);border:1px solid var(--line3);border-radius:20px;padding:4px 11px;cursor:pointer;${mono}font-size:11.5px;color:var(--t-author);">#${esc(s.activeTag)} <span style="font-size:12px;color:var(--t-3);">✕</span></button>` : ''}
+              ${!art && s.activeTag ? `<button data-action="clear-tag" style="display:flex;align-items:center;gap:6px;background:var(--field);border:1px solid var(--line3);border-radius:20px;padding:4px 11px;cursor:pointer;${mono}font-size:11.5px;color:var(--t-author);">#${esc(s.activeTag)} <span style="font-size:12px;color:var(--t-3);">✕</span></button>` : ''}
             </div>
             <p style="margin:6px 0 0;font-size:13px;color:var(--t-3);line-height:1.45;max-width:560px;">${esc(blurb)}</p>
           </div>
-          <div class="edu-tools" style="display:flex;align-items:center;gap:14px;flex:none;">
-            ${themeToggleBtn(false)}
-            ${inReview ? '' : `<button data-action="toggle-group" title="Group by tag" style="display:flex;align-items:center;gap:7px;padding:6px 11px;background:${grouping ? 'var(--t-1)' : 'transparent'};color:${grouping ? 'var(--bg)' : 'var(--t-label)'};border:1px solid ${grouping ? 'var(--t-1)' : 'var(--line2)'};border-radius:7px;font-size:12px;cursor:pointer;${mono}"><span style="font-size:12px;">⊞</span> By tag</button>
-            <div style="display:flex;align-items:center;gap:6px;">
-              <span style="${mono}font-size:10.5px;color:var(--t-faint);letter-spacing:0.1em;text-transform:uppercase;margin-right:2px;">Sort</span>${sortBtns}
-            </div>
-            <div style="display:flex;border:1px solid var(--line2);border-radius:7px;overflow:hidden;">${viewBtns}</div>`}
-          </div>
+          <div class="edu-tools" style="display:flex;align-items:center;gap:14px;flex:none;">${tools}</div>
         </header>
-        <div class="edu-scroll edu-results" style="flex:1;overflow-y:auto;padding:26px 34px 80px;">${resultsHtml()}</div>
+        <div class="edu-scroll edu-results" style="flex:1;overflow-y:auto;padding:26px 34px 80px;">${art ? artResultsHtml() : resultsHtml()}</div>
       </main>
     </div>`;
   }
@@ -480,6 +597,56 @@ const EDUApp = (function () {
     </div>`;
   }
 
+  function artUploadHtml() {
+    if (!state.showArtUpload) return '';
+    const u = state.artUpload;
+    const lbl = 'display:block;' + mono + 'font-size:10.5px;color:var(--t-muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:7px;';
+    const fld = 'width:100%;background:var(--field);border:1px solid var(--line2);border-radius:9px;padding:11px 13px;color:var(--t-1);font-size:13.5px;outline:none;';
+    const seg = (k, l) => `<button data-action="art-kind" data-kind="${k}" style="flex:1;padding:8px 10px;background:${u.kind === k ? 'var(--t-1)' : 'var(--field)'};color:${u.kind === k ? 'var(--bg)' : 'var(--t-label)'};border:1px solid ${u.kind === k ? 'var(--t-1)' : 'var(--line2)'};border-radius:8px;font-size:12.5px;cursor:pointer;${mono}">${l}</button>`;
+    const cats = ART.CATS.map(c => `<option ${u.catName === c.name ? 'selected' : ''}>${esc(c.name)}</option>`).join('');
+    const lvls = ['Any level'].concat(ART.LEVELS).map(l => `<option ${u.level === l ? 'selected' : ''}>${esc(l)}</option>`).join('');
+    const selStyle = fld + 'appearance:none;cursor:pointer;';
+    return `<div id="edu-art-backdrop" style="position:fixed;inset:0;background:rgba(4,4,5,0.74);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;z-index:50;animation:ovIn .16s ease;">
+      <div style="width:560px;max-width:92vw;max-height:88vh;overflow-y:auto;background:var(--modal);border:1px solid var(--line2);border-radius:16px;padding:30px;animation:modIn .2s cubic-bezier(.2,.8,.3,1);">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:6px;">
+          <h2 style="margin:0;font-size:19px;font-weight:700;letter-spacing:-0.01em;">Upload an artefact</h2>
+          <button data-action="close-art-upload" style="background:transparent;border:none;color:var(--t-muted);font-size:20px;cursor:pointer;line-height:1;padding:0;">✕</button>
+        </div>
+        <p style="margin:0 0 22px;font-size:13px;color:var(--t-3);line-height:1.5;">Publish a document or a link to the EAP artefacts library.</p>
+        <div style="display:flex;gap:8px;margin-bottom:18px;">${seg('file', 'Upload a file')}${seg('link', 'Paste a link')}</div>
+        ${u.kind === 'file'
+          ? `<label style="${lbl}">File</label>
+             <label style="display:flex;align-items:center;gap:10px;${fld}cursor:pointer;margin-bottom:18px;">
+               <span style="${mono}font-size:12px;color:var(--t-1);">${u.fileName ? esc(u.fileName) : 'Choose a PDF / Word / PowerPoint…'}</span>
+               <input data-artfile type="file" accept=".pdf,.doc,.docx,.ppt,.pptx" style="display:none;" />
+             </label>`
+          : `<label style="${lbl}">Link URL</label>
+             <input data-au2="link_url" value="${esc(u.link_url || '')}" placeholder="https://…" style="${fld}margin-bottom:18px;" />`}
+        <label style="${lbl}">Title</label>
+        <input data-au2="title" value="${esc(u.title)}" placeholder="e.g. Prompting for paraphrase practice" style="${fld}margin-bottom:18px;" />
+        <label style="${lbl}">Description</label>
+        <textarea data-au2="desc" placeholder="One or two sentences on what it is and why it's useful…" rows="2" style="${fld}resize:vertical;line-height:1.5;margin-bottom:18px;">${esc(u.desc)}</textarea>
+        <label style="${lbl}">How to use it <span style="color:var(--t-dim);text-transform:none;letter-spacing:0;">— optional</span></label>
+        <textarea data-au2="howto" placeholder="A note on how to use it in teaching or study…" rows="2" style="${fld}resize:vertical;line-height:1.5;margin-bottom:18px;">${esc(u.howto)}</textarea>
+        <div style="display:flex;gap:14px;margin-bottom:18px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:160px;"><label style="${lbl}">Category</label><select data-artsel="catName" style="${selStyle}">${cats}</select></div>
+          <div style="flex:1;min-width:160px;"><label style="${lbl}">Who it's for</label><select data-artsel="level" style="${selStyle}">${lvls}</select></div>
+        </div>
+        <label style="${lbl}">Tags <span style="color:var(--t-dim);text-transform:none;letter-spacing:0;">— comma separated</span></label>
+        <input data-au2="tags" value="${esc(u.tags)}" placeholder="prompting, integrity" style="${fld}margin-bottom:18px;" />
+        <label style="${lbl}">Your name <span style="color:var(--t-dim);text-transform:none;letter-spacing:0;">— contributor</span></label>
+        <input data-au2="author" value="${esc(u.author)}" placeholder="e.g. J. Okafor" style="${fld}margin-bottom:22px;" />
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;">
+          <span style="${mono}font-size:11px;color:var(--t-faint);">${esc(state.artUploadMsg || (u.title.trim() ? 'Ready to publish' : 'A title is required'))}</span>
+          <div style="display:flex;gap:10px;">
+            <button data-action="close-art-upload" style="padding:10px 18px;background:transparent;color:var(--t-2);border:1px solid var(--line3);border-radius:9px;font-size:13px;cursor:pointer;">Cancel</button>
+            <button data-action="art-publish" style="padding:10px 20px;background:var(--t-1);color:var(--bg);border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;">Publish</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }
+
   function toastHtml() {
     if (!state.toast) return '';
     return `<div style="position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:var(--t-1);color:var(--bg);padding:11px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:60;animation:toastIn .24s cubic-bezier(.2,.8,.3,1);box-shadow:0 8px 30px rgba(0,0,0,0.5);">${esc(state.toast)}</div>`;
@@ -488,7 +655,7 @@ const EDUApp = (function () {
   // ---- render + events ------------------------------------------------------
   function render(opts) {
     opts = opts || {};
-    root.innerHTML = (state.screen === 'home' ? homeHtml() : appHtml()) + modalHtml() + authModalHtml() + toastHtml();
+    root.innerHTML = (state.screen === 'home' ? homeHtml() : appHtml()) + modalHtml() + authModalHtml() + artUploadHtml() + toastHtml();
     if (opts.focus === 'search') {
       const el = root.querySelector('#edu-search');
       if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
@@ -502,11 +669,25 @@ const EDUApp = (function () {
       // clicking the dimmed backdrop (but not the sheet) closes the modal
       if (e.target.id === 'edu-suggest-backdrop') { state.showSuggest = false; render(); return; }
       if (e.target.id === 'edu-auth-backdrop') { state.showAuth = false; render(); return; }
+      if (e.target.id === 'edu-art-backdrop') { state.showArtUpload = false; render(); return; }
       const t = e.target.closest('[data-action]');
       if (!t) return;
       const a = t.dataset.action, id = t.dataset.id;
       switch (a) {
-        case 'enter': state.screen = 'app'; state.category = 'all'; state.activeTag = null; state.groupByTag = false; render(); break;
+        case 'enter': state.screen = 'app'; state.section = 'readings'; state.category = 'all'; state.activeTag = null; state.groupByTag = false; render(); break;
+        case 'enter-art': state.screen = 'app'; state.section = 'artefacts'; state.query = ''; render(); break;
+        case 'switch-section': state.section = t.dataset.section; state.query = ''; state.activeTag = null; render(); break;
+        case 'art-cat': state.artCat = t.dataset.cat; render(); break;
+        case 'art-rate': if (await ART.rate(id, +t.dataset.star) === 'rate_limited') flash(RATE_MSG); render(); break;
+        case 'art-post': await artPost(id); break;
+        case 'open-art-upload':
+          state.showArtUpload = true; state.artUploadMsg = '';
+          if (!state.artUpload.catName) state.artUpload.catName = (ART.CATS[0] || {}).name || '';
+          if (!state.artUpload.level) state.artUpload.level = 'Any level';
+          render(); break;
+        case 'close-art-upload': state.showArtUpload = false; render(); break;
+        case 'art-kind': state.artUpload.kind = t.dataset.kind; render(); break;
+        case 'art-publish': await artPublish(); break;
         case 'gohome': state.screen = 'home'; render(); break;
         case 'toggle-theme':
           state.theme = state.theme === 'dark' ? 'light' : 'dark';
@@ -551,6 +732,17 @@ const EDUApp = (function () {
       if (el.dataset.tagdraft) { state.tagDrafts[el.dataset.tagdraft] = el.value; return; }
       if (el.dataset.sg) { state.suggest[el.dataset.sg] = el.value; return; }
       if (el.dataset.au) { state.auth[el.dataset.au] = el.value; return; }
+      if (el.dataset.au2) { state.artUpload[el.dataset.au2] = el.value; return; }
+    });
+
+    root.addEventListener('change', e => {
+      const el = e.target;
+      if (el.hasAttribute('data-artfile')) {
+        const f = el.files && el.files[0];
+        if (f) { state.artUpload.file = f; state.artUpload.fileName = f.name; render(); }
+        return;
+      }
+      if (el.dataset.artsel) { state.artUpload[el.dataset.artsel] = el.value; return; }
     });
 
     root.addEventListener('keydown', async e => {
@@ -558,8 +750,37 @@ const EDUApp = (function () {
       const el = e.target;
       if (el.dataset.enter === 'post-comment') { e.preventDefault(); await postComment(el.dataset.draft); }
       else if (el.dataset.enter === 'add-tag') { e.preventDefault(); await addTag(el.dataset.tagdraft); }
+      else if (el.dataset.enter === 'art-post') { e.preventDefault(); await artPost(el.dataset.draft); }
       else if (el.dataset.enter === 'auth') { e.preventDefault(); await doAuthSubmit(); }
     });
+  }
+
+  async function artPost(id) {
+    const text = (state.drafts[id] || '').trim();
+    if (!text) return;
+    const name = (function () { try { return localStorage.getItem('eapaic:name') || ''; } catch (e) { return ''; } })();
+    await ART.addComment(id, name, text);
+    state.drafts[id] = '';
+    render();
+  }
+  async function artPublish() {
+    const u = state.artUpload;
+    if (!u.title.trim()) { state.artUploadMsg = 'A title is required.'; render(); return; }
+    state.artUploadMsg = 'Publishing…'; render();
+    try {
+      await ART.publish({
+        kind: u.kind, file: u.file, link_url: u.link_url, title: u.title, desc: u.desc, howto: u.howto,
+        catName: u.catName, level: u.level === 'Any level' ? '' : u.level,
+        tags: u.tags.split(',').map(t => t.trim()).filter(Boolean), author: u.author,
+      });
+      await ART.reload();
+      state.showArtUpload = false;
+      state.artUpload = { kind: 'file', file: null, fileName: '', title: '', desc: '', howto: '', catName: (ART.CATS[0] || {}).name || '', level: 'Any level', tags: '', author: '' };
+      flash('Published to the artefacts library.');
+    } catch (err) {
+      state.artUploadMsg = err.message || 'Could not publish — are you signed in as an editor?';
+      render();
+    }
   }
 
   // ---- auth + moderation ----------------------------------------------------
@@ -639,8 +860,11 @@ const EDUApp = (function () {
     const h = location.hash.replace(/^#/, '');
     const p = new URLSearchParams(h);
     if (p.has('id')) {
-      state.screen = 'app'; state.category = 'all'; state.activeTag = null; state.groupByTag = false;
+      state.screen = 'app'; state.section = 'readings'; state.category = 'all'; state.activeTag = null; state.groupByTag = false;
       state.expanded[p.get('id')] = true; state._scrollTo = p.get('id');
+    } else if (h === 'artefacts' || p.has('art')) {
+      state.screen = 'app'; state.section = 'artefacts';
+      if (p.get('art')) { state.artCat = 'all'; state.expanded[p.get('art')] = true; }
     } else if (p.has('cat')) { state.screen = 'app'; state.category = p.get('cat'); }
     else if (h === 'browse' || h === 'app') { state.screen = 'app'; }
   }
@@ -651,7 +875,7 @@ const EDUApp = (function () {
     bind();
     root.innerHTML = `<div style="height:100vh;display:grid;place-items:center;color:var(--t-faint);${mono}font-size:13px;">Loading the commons…</div>`;
     try {
-      await Promise.all([EDU.load(), refreshAuth()]);
+      await Promise.all([EDU.load(), ART.load().catch(e => console.error('artefacts load failed', e)), refreshAuth()]);
       deepLink();
       render();
       if (state._scrollTo) {

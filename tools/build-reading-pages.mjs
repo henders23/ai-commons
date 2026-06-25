@@ -92,7 +92,7 @@ function page(r) {
 }
 
 function sitemap(readings) {
-  const urls = [`${ORIGIN}/`, `${ORIGIN}/Library.html`, `${ORIGIN}/EAP%20AI%20Commons.html`]
+  const urls = [`${ORIGIN}/`, `${ORIGIN}/Library.html`]
     .concat(readings.map(r => `${ORIGIN}/r/${encodeURIComponent(r.id)}.html`));
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemap.org/schemas/sitemap/0.9">\n` +
     urls.map(u => `  <url><loc>${u}</loc></url>`).join('\n') + `\n</urlset>\n`;
