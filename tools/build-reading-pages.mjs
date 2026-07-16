@@ -35,11 +35,10 @@ function page(r) {
   const tags = (r.tags || []).map(t =>
     `<span style="font-family:var(--mono);font-size:11px;color:var(--t-label);background:var(--field);border:1px solid var(--line2);border-radius:5px;padding:3px 9px;">#${esc(t)}</span>`).join('');
   return `<!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<script>(function(){try{var t=localStorage.getItem('aice-theme');document.documentElement.setAttribute('data-theme',(t==='light'||t==='dark')?t:'dark');}catch(e){}})();</script>
 <title>${esc(r.title)} · AI Commons for Education</title>
 <meta name="description" content="${esc(ogDesc)}" />
 <link rel="canonical" href="${canonical}" />

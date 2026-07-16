@@ -9,7 +9,6 @@ const EDUApp = (function () {
   const RATE_MSG = "You're going a bit fast — give it a minute.";
 
   const state = {
-    theme: (function () { try { return localStorage.getItem('aice-theme') || 'dark'; } catch (e) { return 'dark'; } })(),
     screen: 'home', section: 'readings', category: 'all', artCat: 'all',
     query: '', sort: 'top', view: 'list',
     groupByTag: false, activeTag: null,
@@ -25,7 +24,6 @@ const EDUApp = (function () {
 
   let root = null;
 
-  function applyTheme() { document.documentElement.setAttribute('data-theme', state.theme); }
   function flash(msg) {
     state.toast = msg; render();
     clearTimeout(state._toastT);
@@ -56,15 +54,6 @@ const EDUApp = (function () {
   }
 
   // ---- small markup helpers -------------------------------------------------
-  const themeGlyph = () => state.theme === 'dark' ? '☾' : '☀';
-  const themeLabel = () => state.theme === 'dark' ? 'Dark' : 'Light';
-  const themeTitle = () => state.theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme';
-  function themeToggleBtn(big) {
-    const pad = big ? '8px 14px' : '7px 11px';
-    return `<button data-action="toggle-theme" title="${esc(themeTitle())}" class="h-bd"
-      style="display:inline-flex;align-items:center;gap:7px;padding:${pad};background:transparent;color:var(--t-muted);border:1px solid var(--line2);border-radius:${big ? 9 : 7}px;font-size:${big ? 13 : 12}px;cursor:pointer;${mono}"><span style="font-size:14px;line-height:1;">${themeGlyph()}</span> ${themeLabel()} mode</button>`;
-  }
-
   // start-page editor auth controls (open the shared auth modal)
   function authControls() {
     const ghost = 'display:inline-flex;align-items:center;padding:8px 14px;background:transparent;color:var(--t-1);border:1px solid var(--line3);border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;';
@@ -106,7 +95,6 @@ const EDUApp = (function () {
           <div style="${mono}font-size:11px;letter-spacing:0.2em;color:var(--t-eyebrow);text-transform:uppercase;">AI Commons · for Education</div>
           <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
             ${authControls()}
-            ${themeToggleBtn(true)}
           </div>
         </div>
 
@@ -466,8 +454,8 @@ const EDUApp = (function () {
          </div>`;
 
     const tools = art
-      ? `${themeToggleBtn(false)}<div style="display:flex;border:1px solid var(--line2);border-radius:7px;overflow:hidden;">${viewBtns}</div>`
-      : `${themeToggleBtn(false)}${inReview ? '' : `<button data-action="toggle-group" title="Group by tag" style="display:flex;align-items:center;gap:7px;padding:6px 11px;background:${grouping ? 'var(--t-1)' : 'transparent'};color:${grouping ? 'var(--bg)' : 'var(--t-label)'};border:1px solid ${grouping ? 'var(--t-1)' : 'var(--line2)'};border-radius:7px;font-size:12px;cursor:pointer;${mono}"><span style="font-size:12px;">⊞</span> By tag</button>
+      ? `<div style="display:flex;border:1px solid var(--line2);border-radius:7px;overflow:hidden;">${viewBtns}</div>`
+      : `${inReview ? '' : `<button data-action="toggle-group" title="Group by tag" style="display:flex;align-items:center;gap:7px;padding:6px 11px;background:${grouping ? 'var(--t-1)' : 'transparent'};color:${grouping ? 'var(--bg)' : 'var(--t-label)'};border:1px solid ${grouping ? 'var(--t-1)' : 'var(--line2)'};border-radius:7px;font-size:12px;cursor:pointer;${mono}"><span style="font-size:12px;">⊞</span> By tag</button>
             <div style="display:flex;align-items:center;gap:6px;"><span style="${mono}font-size:10.5px;color:var(--t-faint);letter-spacing:0.1em;text-transform:uppercase;margin-right:2px;">Sort</span>${sortBtns}</div>
             <div style="display:flex;border:1px solid var(--line2);border-radius:7px;overflow:hidden;">${viewBtns}</div>`}`;
 
@@ -689,10 +677,6 @@ const EDUApp = (function () {
         case 'art-kind': state.artUpload.kind = t.dataset.kind; render(); break;
         case 'art-publish': await artPublish(); break;
         case 'gohome': state.screen = 'home'; render(); break;
-        case 'toggle-theme':
-          state.theme = state.theme === 'dark' ? 'light' : 'dark';
-          try { localStorage.setItem('aice-theme', state.theme); } catch (x) {}
-          applyTheme(); render(); break;
         case 'browse-cat': state.category = t.dataset.cat; state.activeTag = null; state.groupByTag = false; state.screen = 'app'; render(); break;
         case 'readlater': state.category = 'readlater'; state.activeTag = null; state.groupByTag = false; render(); break;
         case 'sort': state.sort = t.dataset.sort; render(); break;
@@ -871,7 +855,6 @@ const EDUApp = (function () {
 
   async function mount(el) {
     root = el;
-    applyTheme();
     bind();
     root.innerHTML = `<div style="height:100vh;display:grid;place-items:center;color:var(--t-faint);${mono}font-size:13px;">Loading the commons…</div>`;
     try {

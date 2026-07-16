@@ -1,24 +1,16 @@
 /* AI Commons for Education — readings shell.
    Self-contained design system ported from the Library.dc.html handoff:
-   IBM Plex Mono + Helvetica Neue, light/dark via [data-theme]. Scoped under
+   IBM Plex Mono + Helvetica Neue, a single light theme. Scoped under
    .edu so it never collides with the artefact pages' commons.css. */
 
 :root{
-  --bg:#0b0b0c; --bg2:#0d0d0e; --card:#0f0f10; --modal:#111113; --field:#141416;
-  --active:#171719; --line:#1c1c1e; --line2:#242427; --line3:#2a2a2d;
-  --line-hover:#3a3a3e; --star-empty:#34343a; --sep:#3c3c41; --t-dim:#4c4c52;
-  --t-faint:#5c5c61; --t-eyebrow:#6c6c72; --t-muted:#7a7a80; --t-listdesc:#85858b;
-  --t-3:#8a8a8f; --t-label:#9a9aa0; --t-2:#a6a6ab; --t-score:#c4c4c8;
-  --t-author:#d4d4d6; --t-1:#f4f4f5; --accent-hover:#ffffff;
-  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
-}
-:root[data-theme="light"]{
   --bg:#ffffff; --bg2:#f5f5f6; --card:#fafafb; --modal:#ffffff; --field:#f0f0f2;
   --active:#ebebee; --line:#e6e6e9; --line2:#dcdce0; --line3:#d0d0d5;
   --line-hover:#b6b6bd; --star-empty:#d6d6db; --sep:#c8c8ce; --t-dim:#b2b2b9;
   --t-faint:#9a9aa2; --t-eyebrow:#87878f; --t-muted:#71717a; --t-listdesc:#66666e;
   --t-3:#55555d; --t-label:#52525b; --t-2:#3f3f46; --t-score:#3f3f46;
   --t-author:#27272a; --t-1:#18181b; --accent-hover:#000000;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
 }
 
 *{ box-sizing:border-box; }

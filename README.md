@@ -1,7 +1,7 @@
 # EAP AI Commons
 
 Shared resources for using AI in English for Academic Purposes (EAP) teaching,
-learning and professional practice — a clean, monochrome dark-mode library of
+learning and professional practice — a clean, monochrome light-mode library of
 documents and links, backed by Supabase.
 
 Implemented from a Claude Design handoff bundle: a static HTML/CSS/JS front end
@@ -18,8 +18,8 @@ the artefact pages below remain and will be re-skinned into the same shell.
   "How it works", category grid, "Top rated") and an **app** (sidebar search /
   Read-later / category nav / Suggest-a-link + a main pane of ranked reading rows
   with upvote/score, inline star rating, tags, and a comment thread). Own visual
-  system (IBM Plex Mono + Helvetica Neue) with a **light/dark theme toggle**.
-- `edu.css` — readings design tokens (light/dark via `[data-theme]`), scoped
+  system (IBM Plex Mono + Helvetica Neue) in a single **light theme**.
+- `edu.css` — readings design tokens (a single light theme), scoped
   under `.edu` so it never collides with the artefact pages' `commons.css`.
 - `readings-data.js` — async data access for readings, categories, the visitor's
   votes/ratings, and comments; Read-later lives in `localStorage`.
