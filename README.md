@@ -130,12 +130,20 @@ to the browser; access is enforced server-side by Row Level Security.
 
 ### Security advisor notes
 
-`get_advisors` reports two `WARN`s: `is_admin()` and `submit_rating()` are
-`SECURITY DEFINER` functions executable by `anon`/`authenticated`. This is
-intentional — both only ever act on the caller's own context (`is_admin()`
-reflects only the caller's status; `submit_rating()` validates its inputs and is
-keyed by a client-supplied visitor id). This is the standard Supabase pattern for
-an RLS helper and a public upsert.
+The remaining `get_advisors` `WARN`s are intentional: the public RPCs
+(`is_admin`, `submit_rating`, `vote_reading`, `suggest_reading`,
+`add_reading_tag`, `claim_first_admin`) are `SECURITY DEFINER` functions
+executable by `anon`/`authenticated` — each only ever acts on the caller's own
+context and validates its inputs. This is the standard Supabase pattern for an
+RLS helper and a public upsert. The internal rate-limit helpers
+(`_client_ip_hash`, `_rate_guard`) are **not** callable through the REST API
+(EXECUTE revoked from `anon`/`authenticated`), `rating_stats` runs as
+`security_invoker`, and `sync_social_target` has a pinned `search_path`.
+`app_config` and `rate_hits` are deliberately deny-all (RLS enabled, no
+policies) — only `SECURITY DEFINER` functions touch them.
+
+One advisor item must be toggled in the dashboard, not SQL: enable **leaked
+password protection** under Auth → Passwords.
 
 ## Running
 
@@ -146,4 +154,6 @@ ES modules need an HTTP origin):
 python3 -m http.server
 ```
 
-Then open <http://localhost:8000/EAP%20AI%20Commons.html>.
+Then open <http://localhost:8000/> (redirects to `Library.html`, the app).
+
+Production is deployed on Vercel at <https://ai-commons-for-eap.vercel.app>.
