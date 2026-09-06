@@ -12,8 +12,8 @@ interface Props {
 }
 const { title, description = site.description, ogType = 'website', searchable = true } = Astro.props;
 const fullTitle = title ? `${title} · ${site.fullName}` : `${site.fullName} — ${site.tagline}`;
-const canonical = new URL(Astro.url.pathname, site.url).href;
-const path = Astro.url.pathname.replace(/\.html$/, '');
+const path = Astro.url.pathname.replace(/\/index\.html$/, '/').replace(/\.html$/, '');
+const canonical = new URL(path, site.url).href;
 const isCurrent = (href: string) => path === href || path.startsWith(href + '/');
 ---
 <!doctype html>
