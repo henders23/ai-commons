@@ -13,7 +13,7 @@ export const site = {
   /* Who edits the Commons. Used for attribution on site-authored resources. */
   editor: { name: 'Paul Hendrie', role: 'Editor' },
   /* Where contributions are sent. Replace with a real (ideally role) address. */
-  contributeEmail: 'contribute@example.org',
+  contributeEmail: 'info@aiforhe.com',
   licence: { label: 'CC BY 4.0', url: 'https://creativecommons.org/licenses/by/4.0/' },
   /* The field this commons serves. Every resource carries this tag so a later
      broadening to other fields is a matter of adding a second value. */

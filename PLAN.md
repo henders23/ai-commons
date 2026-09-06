@@ -106,8 +106,8 @@ last updated. Every resource has its own crawlable URL.
 
 ## Still open
 
-- **Contribution email address.** `src/site.ts` holds a placeholder
-  (`contribute@example.org`) until a real, ideally role, address is chosen.
+- **Contribution email address.** Done: `src/site.ts`
+  is set to info@aiforhe.com.
 - **PDF versions of the downloads.** Word files only for now; PDFs can be added
   alongside in `public/files/<slug>/`.
 - **Whether to keep any of the real websites** from the old seed data as
