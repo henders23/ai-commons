@@ -15,8 +15,9 @@ Live at <https://ai-commons-for-eap.vercel.app>. See `PLAN.md` for the brief.
 - **Ratings** are the one dynamic feature: `api/ratings.js` is a Vercel
   serverless function backed by an Upstash Redis REST store. Everything else
   works without it.
-- Deployed on **Vercel**. `vercel.json` carries redirects from the old site's
-  URLs and clean-URL settings.
+- Deployed on **Vercel**; production tracks `main`, so every push to `main`
+  goes live. `vercel.json` carries redirects from the old site's URLs and
+  clean-URL settings.
 
 ```
 npm install
