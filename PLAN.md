@@ -101,8 +101,8 @@ last updated. Every resource has its own crawlable URL.
   rethinking assessment, talking to students). Steps not yet backed by a
   resource are shown as "coming".
 - **Ratings:** dropped (see above). Supabase is retired.
-- **First content:** three documents from the editor, published as resources
-  (a position paper, a guide, and an activity collection).
+- **First content:** five documents from the editor, published as resources
+  (two position papers, two guides, and an activity collection).
 
 ## Still open
 
@@ -120,8 +120,8 @@ last updated. Every resource has its own crawlable URL.
 2. ~~Pages: home, library with search and facets, resource page, pathways,
    courses, about and contribute.~~ Done.
 3. ~~Ratings.~~ Built, then removed: the store would have cost money.
-4. Seed content: three resources and four pathways are in. More resources,
-   the "coming" pathway steps, and the first course are next.
+4. Seed content: five resources and four pathways are in. The remaining
+   "coming" pathway steps, more resources, and the first course are next.
 5. ~~Retire the old app: remove the SPA files, Supabase client, generated
    `r/` pages; regenerate sitemap; redirect old URLs.~~ Done; the Supabase
    project itself can be deleted once the new site is live.

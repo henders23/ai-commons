@@ -7,6 +7,8 @@ order: 2
 steps:
   - resource: authorship-in-the-age-of-ai
     note: Start from the definition and the eight principles in section 8. Treat the definition as a draft your centre can adopt, adapt or reject. Section 3, the EAP precedent on proofreading and permissible help, is the reminder that this field has drawn these lines before.
+  - resource: generative-academic-literacies
+    note: Section 6.4 describes how an EAP centre earns an advisory role on assessment and AI policy rather than claiming one, and section 5 lists the objections a position will meet. A centre position is stronger for having answered them in advance.
   - resource: ai-for-educators-professional-development
     note: The four ground rules in Part 1 are the staff-facing half of a position. No identifiable student data, check the institution's policy, verify before you rely, and colleagues deserve the same care as students. Most centres can adopt them as they stand.
   - title: A position statement template
