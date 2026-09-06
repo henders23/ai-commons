@@ -1,0 +1,34 @@
+---
+import Base from '../layouts/Base.astro';
+import { site } from '../site';
+---
+<Base title="About" description={`What ${site.fullName} is, who edits it, and how material is licensed and attributed.`}>
+  <section class="hero" style="padding-bottom:0.5rem">
+    <div class="wrap">
+      <p class="eyebrow">About</p>
+      <h1>A commons, edited.</h1>
+      <p class="lede">{site.fullName} exists to help people who teach English for Academic Purposes engage well with AI.</p>
+    </div>
+  </section>
+  <section class="section" style="padding-top:1rem">
+    <div class="wrap prose">
+      <h2>What it is for</h2>
+      <p>AI has reached every part of EAP work: what students write, how we assess it, what we teach about source use and voice, and how we do our own professional development. Much of what is written about it is either breathless or forbidding. The Commons collects material that is neither: documents, activities, frameworks and guides that help tutors and course leaders think clearly and act well.</p>
+      <p>Everything here can be downloaded and used. Activities and discussion packs are for running with students or colleagues. Papers and guides are for your own thinking. Pathways string several resources together for a situation you might be in, such as a first team conversation about AI or a rethink of assessment.</p>
+
+      <h2>How it is edited</h2>
+      <p>The Commons is curated, not open. Nothing appears here that the editor has not read and chosen. Contributions are welcome and arrive by email; see <a href="/contribute">how to contribute</a>. Each contribution is published with its author's name and, where they want it, a link.</p>
+      <p>The Commons is edited by {site.editor.name}.</p>
+
+      <h2>Licence and attribution</h2>
+      <p>Unless a resource says otherwise, everything authored for or contributed to the Commons is licensed under <a href={site.licence.url} rel="license">Creative Commons Attribution 4.0 ({site.licence.label})</a>. You may copy, adapt and redistribute it, including commercially, as long as you credit the author and note any changes. Contributors keep copyright in their work and confirm when they send it that they have the right to share it under this licence.</p>
+      <p>Readings are links to work published elsewhere. They are not licensed by the Commons, and the note that accompanies each is the editor's own.</p>
+
+      <h2>Scope, and what comes next</h2>
+      <p>The Commons starts with English for Academic Purposes because that is where its editor works and where the material comes from. Much of it will be useful to educators in other fields, and the site is built so that it can broaden to education more generally in time.</p>
+
+      <h2>No accounts, no tracking</h2>
+      <p>There is nothing to sign up for. The site keeps no record of who visits, and there are no comments or ratings. If a resource was useful, or was not, the editor would rather hear it by email.</p>
+    </div>
+  </section>
+</Base>

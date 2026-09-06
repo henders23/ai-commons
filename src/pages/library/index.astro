@@ -1,0 +1,138 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import ResourceCard from '../../components/ResourceCard.astro';
+import { types, themes, audiences } from '../../site';
+
+const resources = (await getCollection('resources', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.published.getTime() - a.data.published.getTime());
+const count = (pred: (r: typeof resources[number]) => boolean) => resources.filter(pred).length;
+---
+<Base title="Library" description="Every guide, paper, activity, framework and reading in the AI Commons for EAP, filterable by type, theme and audience." searchable={false}>
+  <section class="hero" style="padding-bottom:1rem">
+    <div class="wrap">
+      <p class="eyebrow">Library</p>
+      <h1>Everything in the Commons</h1>
+      <p class="lede">Filter by what a thing is, what it is about, and who it is for. Or just search.</p>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:0.5rem">
+    <div class="wrap library">
+      <form class="filters" id="filters" aria-label="Filter the library">
+        <label class="search" for="q">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input id="q" name="q" type="search" placeholder="Search the library" autocomplete="off" />
+        </label>
+        <fieldset>
+          <legend>Who it is for</legend>
+          {Object.entries(audiences).map(([k, a]) => (
+            <label><input type="checkbox" name="audience" value={k} /> {a.label} <span class="muted small" style="margin-left:auto">{count((r) => r.data.audience.includes(k as any))}</span></label>
+          ))}
+        </fieldset>
+        <fieldset>
+          <legend>Type</legend>
+          {Object.entries(types).map(([k, t]) => (
+            <label><input type="checkbox" name="type" value={k} /> {t.plural} <span class="muted small" style="margin-left:auto">{count((r) => r.data.type === k)}</span></label>
+          ))}
+        </fieldset>
+        <fieldset>
+          <legend>Theme</legend>
+          {Object.entries(themes).map(([k, t]) => (
+            <label><input type="checkbox" name="theme" value={k} /> {t.label} <span class="muted small" style="margin-left:auto">{count((r) => r.data.themes.includes(k as any))}</span></label>
+          ))}
+        </fieldset>
+        <button class="btn" type="reset" style="justify-self:start">Clear filters</button>
+      </form>
+
+      <div>
+        <div class="results-head">
+          <span id="results-count" aria-live="polite">{resources.length} resources</span>
+        </div>
+        <div class="grid" id="results">
+          {resources.map((r) => <ResourceCard resource={r} />)}
+        </div>
+        <div class="empty" id="empty" hidden>
+          <p><strong>Nothing matches those filters.</strong></p>
+          <p class="muted">Try fewer filters, or a different word. If something you need is missing, <a href="/contribute">say so</a>.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    /* Client-side filtering over the rendered cards. Search uses the Pagefind
+       index when the site is built, and a plain text match in development. */
+    const form = document.getElementById('filters') as HTMLFormElement;
+    const cards = Array.from(document.querySelectorAll<HTMLElement>('#results .card'));
+    const countEl = document.getElementById('results-count')!;
+    const empty = document.getElementById('empty')!;
+    const q = document.getElementById('q') as HTMLInputElement;
+
+    let pagefind: any = null;
+    const loadPagefind = async () => {
+      if (pagefind !== null) return pagefind;
+      try {
+        pagefind = await import(/* @vite-ignore */ '/pagefind/pagefind.js');
+        await pagefind.init();
+      } catch { pagefind = false; }
+      return pagefind;
+    };
+
+    const checked = (name: string) =>
+      Array.from(form.querySelectorAll<HTMLInputElement>(`input[name="${name}"]:checked`)).map((i) => i.value);
+
+    let searchHits: Set<string> | null = null;
+    const apply = () => {
+      const aud = checked('audience'), typ = checked('type'), th = checked('theme');
+      let n = 0;
+      for (const c of cards) {
+        const ok =
+          (!aud.length || aud.some((a) => c.dataset.audience!.split(' ').includes(a))) &&
+          (!typ.length || typ.includes(c.dataset.type!)) &&
+          (!th.length || th.some((t) => c.dataset.themes!.split(' ').includes(t))) &&
+          (searchHits === null || searchHits.has(c.dataset.slug!));
+        c.hidden = !ok;
+        if (ok) n++;
+      }
+      countEl.textContent = `${n} resource${n === 1 ? '' : 's'}`;
+      empty.hidden = n > 0;
+      const params = new URLSearchParams();
+      aud.forEach((v) => params.append('audience', v));
+      typ.forEach((v) => params.append('type', v));
+      th.forEach((v) => params.append('theme', v));
+      if (q.value.trim()) params.set('q', q.value.trim());
+      history.replaceState(null, '', params.toString() ? `?${params}` : location.pathname);
+    };
+
+    let timer: number;
+    const search = async () => {
+      const term = q.value.trim();
+      if (!term) { searchHits = null; apply(); return; }
+      const pf = await loadPagefind();
+      if (pf) {
+        const res = await pf.search(term);
+        const hits = await Promise.all(res.results.map((r: any) => r.data()));
+        searchHits = new Set(hits.map((h: any) => h.url.replace(/^.*\/library\//, '').replace(/\.html$|\/$/, '')));
+      } else {
+        const t = term.toLowerCase();
+        searchHits = new Set(cards.filter((c) => (c.dataset.title + ' ' + c.dataset.summary).toLowerCase().includes(t)).map((c) => c.dataset.slug!));
+      }
+      apply();
+    };
+
+    form.addEventListener('change', apply);
+    q.addEventListener('input', () => { clearTimeout(timer); timer = window.setTimeout(search, 180); });
+    form.addEventListener('reset', () => setTimeout(() => { searchHits = null; apply(); }, 0));
+
+    /* Restore state from the URL, so the home page doors can deep-link. */
+    const init = new URLSearchParams(location.search);
+    for (const name of ['audience', 'type', 'theme']) {
+      for (const v of init.getAll(name)) {
+        const box = form.querySelector<HTMLInputElement>(`input[name="${name}"][value="${v}"]`);
+        if (box) box.checked = true;
+      }
+    }
+    if (init.get('q')) { q.value = init.get('q')!; search(); } else { apply(); }
+  </script>
+</Base>

@@ -1,0 +1,82 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import ResourceCard from '../../components/ResourceCard.astro';
+import { site, types, themes, audiences } from '../../site';
+import { fmtDate } from '../../lib/format';
+
+export async function getStaticPaths() {
+  const all = await getCollection('resources', ({ data }) => !data.draft);
+  return all.map((r) => ({ params: { slug: r.id }, props: { resource: r, all } }));
+}
+const { resource, all } = Astro.props;
+const d = resource.data;
+const { Content } = await render(resource);
+const t = types[d.type as keyof typeof types];
+const related = d.related.length
+  ? all.filter((r) => d.related.includes(r.id))
+  : all.filter((r) => r.id !== resource.id && r.data.themes.some((th) => d.themes.includes(th))).slice(0, 3);
+const contributorLine = d.contributor.role ? `${d.contributor.name}, ${d.contributor.role}` : d.contributor.name;
+---
+<Base title={d.title} description={d.summary} ogType="article">
+  <article>
+    <section class="hero" style="padding-bottom:0.5rem">
+      <div class="wrap">
+        <p class="eyebrow"><a href="/library" style="color:inherit;text-decoration:none">Library</a> / {t.label}</p>
+        <h1 data-pagefind-meta="title">{d.title}</h1>
+        {d.subtitle && <p class="lede" style="max-width:56ch">{d.subtitle}</p>}
+        <div class="chips" style="margin-top:0.9rem">
+          <span class={`badge type-${d.type}`}>{t.label}</span>
+          {d.themes.map((k) => <a class="chip" href={`/library?theme=${k}`}>{themes[k as keyof typeof themes].label}</a>)}
+          {d.audience.map((k) => <a class="chip" href={`/library?audience=${k}`}>{audiences[k as keyof typeof audiences].label}</a>)}
+        </div>
+      </div>
+    </section>
+
+    <section class="section" style="padding-top:1.5rem">
+      <div class="wrap resource">
+        <div class="prose">
+          <p style="font-size:1.12rem;line-height:1.55;color:var(--ink-2)">{d.summary}</p>
+          <Content />
+        </div>
+        <aside data-pagefind-ignore>
+          {(d.formats.length > 0 || d.url) && (
+            <div class="panel">
+              <h4>{d.url ? 'Read it' : 'Download'}</h4>
+              <div class="downloads">
+                {d.url && <a class="btn primary" href={d.url} target="_blank" rel="noopener">Open{d.source ? ` at ${d.source}` : ''} ↗</a>}
+                {d.formats.map((f, i) => (
+                  <a class={`btn ${i === 0 && !d.url ? 'primary' : ''}`} href={f.path} download>
+                    <span>{f.label}</span>{f.size && <small>{f.size}</small>}
+                  </a>
+                ))}
+              </div>
+              {d.formats.length > 0 && <p class="small muted" style="margin:0.7rem 0 0">Licensed <a href={site.licence.url} rel="license">{d.licence}</a>. Adapt freely; credit {d.contributor.name}.</p>}
+            </div>
+          )}
+          <div class="panel">
+            <h4>About this resource</h4>
+            <dl>
+              <dt>By</dt><dd>{d.contributor.url ? <a href={d.contributor.url}>{contributorLine}</a> : contributorLine}</dd>
+              {d.version && <><dt>Version</dt><dd>{d.version}</dd></>}
+              {d.time && <><dt>Time</dt><dd>{d.time}</dd></>}
+              {d.groupSize && <><dt>Group</dt><dd>{d.groupSize}</dd></>}
+              <dt>Published</dt><dd>{fmtDate(d.published)}</dd>
+              {d.updated && <><dt>Updated</dt><dd>{fmtDate(d.updated)}</dd></>}
+              <dt>Licence</dt><dd><a href={site.licence.url} rel="license">{d.licence}</a></dd>
+            </dl>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    {related.length > 0 && (
+      <section class="section" style="padding-top:0" data-pagefind-ignore>
+        <div class="wrap">
+          <div class="section-head"><h2>Related</h2><a href="/library">Library</a></div>
+          <div class="grid">{related.map((r) => <ResourceCard resource={r} />)}</div>
+        </div>
+      </section>
+    )}
+  </article>
+</Base>
