@@ -14,7 +14,6 @@ const t = types[d.type as keyof typeof types];
   <h3><a href={`/library/${resource.id}`}>{d.title}</a></h3>
   <p>{d.summary}</p>
   <div class="meta">
-    <span class="rating" data-rating-for={resource.id} aria-live="polite"></span>
     <span>{d.audience.map((a) => audiences[a as keyof typeof audiences].label).join(' · ')}</span>
   </div>
 </article>

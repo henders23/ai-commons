@@ -1,9 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
-import Rate from '../../components/Rate.astro';
 import ResourceCard from '../../components/ResourceCard.astro';
-import RatingSummary from '../../components/RatingSummary.astro';
 import { site, types, themes, audiences } from '../../site';
 import { fmtDate } from '../../lib/format';
 
@@ -68,7 +66,6 @@ const contributorLine = d.contributor.role ? `${d.contributor.name}, ${d.contrib
               <dt>Licence</dt><dd><a href={site.licence.url} rel="license">{d.licence}</a></dd>
             </dl>
           </div>
-          <Rate slug={resource.id} />
         </aside>
       </div>
     </section>
@@ -82,5 +79,4 @@ const contributorLine = d.contributor.role ? `${d.contributor.name}, ${d.contrib
       </section>
     )}
   </article>
-  <RatingSummary />
 </Base>

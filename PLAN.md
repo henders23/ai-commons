@@ -20,8 +20,9 @@ and for their teams, and carries invitations to courses.
   every resource carries a `field` tag (always `eap` for now); URLs are
   field-neutral (`/library/<slug>`, not `/eap/library/<slug>`); any purchased
   domain should be the general one.
-- **Community features.** Ratings only (1–5 stars, one per browser visitor,
-  average and count shown). No votes, comments, tags, accounts, moderation.
+- **Community features.** None. Ratings were built and then dropped, because
+  the only store for them on Vercel would have cost money. No votes, comments,
+  tags, ratings, accounts or moderation. Feedback comes by email.
 - **Existing readings.** The 14 seeded readings are design-handoff seed content,
   not real, and not about EAP. They are discarded. A few of the real websites
   among them may be re-added as proper readings later (EDUCAUSE AI hub, AI
@@ -57,7 +58,7 @@ and for their teams, and carries invitations to courses.
 
 Title · type badge · themes · audience · plain summary · "what you get" ·
 how to use it · time and group size (activities) · contributor attribution ·
-licence · download button per format · star rating · related items ·
+licence · download button per format · related items ·
 last updated. Every resource has its own crawlable URL.
 
 ## Content model (files in the repo)
@@ -99,8 +100,7 @@ last updated. Every resource has its own crawlable URL.
 - **Launch pathways:** 1, 2, 3 and 5 (first conversation, centre position,
   rethinking assessment, talking to students). Steps not yet backed by a
   resource are shown as "coming".
-- **Ratings backend:** a Vercel serverless function (`api/ratings.js`) with an
-  Upstash Redis REST store. Supabase is retired.
+- **Ratings:** dropped (see above). Supabase is retired.
 - **First content:** three documents from the editor, published as resources
   (a position paper, a guide, and an activity collection).
 
@@ -119,8 +119,7 @@ last updated. Every resource has its own crawlable URL.
    theme, base layout and navigation.~~ Done.
 2. ~~Pages: home, library with search and facets, resource page, pathways,
    courses, about and contribute.~~ Done.
-3. ~~Ratings: backend function plus the star widget on resource pages.~~ Code
-   done; the Upstash store still needs connecting in Vercel (see README).
+3. ~~Ratings.~~ Built, then removed: the store would have cost money.
 4. Seed content: three resources and four pathways are in. More resources,
    the "coming" pathway steps, and the first course are next.
 5. ~~Retire the old app: remove the SPA files, Supabase client, generated

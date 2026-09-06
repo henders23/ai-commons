@@ -3,6 +3,7 @@
 Documents, activities and guides to help English for Academic Purposes
 educators engage well with AI. A curated, editorially owned static site:
 nobody uploads, contributions arrive by email and are added with attribution.
+No database, no accounts, no ratings or comments.
 
 Live at <https://ai-commons-for-eap.vercel.app>. See `PLAN.md` for the brief.
 
@@ -12,9 +13,6 @@ Live at <https://ai-commons-for-eap.vercel.app>. See `PLAN.md` for the brief.
   content in `src/content/`. No database, no accounts.
 - **[Pagefind](https://pagefind.app)** builds a browser-side search index after
   each build (`npm run build` runs both).
-- **Ratings** are the one dynamic feature: `api/ratings.js` is a Vercel
-  serverless function backed by an Upstash Redis REST store. Everything else
-  works without it.
 - Deployed on **Vercel**; production tracks `main`, so every push to `main`
   goes live. `vercel.json` carries redirects from the old site's URLs and
   clean-URL settings.
@@ -40,17 +38,6 @@ Everything an editor changes is a file.
 
 A contribution that arrives by email becomes: one Markdown file, the file(s) in
 `public/files/<slug>/`, a commit, a push. Vercel deploys.
-
-## Ratings setup
-
-The ratings widget needs a Redis REST store. On Vercel: Storage → Marketplace →
-Upstash Redis, connect it to the project, and the `KV_REST_API_URL` /
-`KV_REST_API_TOKEN` variables are set for you. Any Upstash database works too
-(`UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`). Without them the API
-answers 503 and the site shows "Ratings are unavailable right now".
-
-Data model: one hash per resource, `rating:<slug>`, mapping a browser-generated
-visitor id to a 1–5 score. One rating per browser; changing it overwrites.
 
 ## Broadening beyond EAP
 

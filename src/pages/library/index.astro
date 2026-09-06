@@ -2,7 +2,6 @@
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import ResourceCard from '../../components/ResourceCard.astro';
-import RatingSummary from '../../components/RatingSummary.astro';
 import { types, themes, audiences } from '../../site';
 
 const resources = (await getCollection('resources', ({ data }) => !data.draft))
@@ -60,7 +59,6 @@ const count = (pred: (r: typeof resources[number]) => boolean) => resources.filt
       </div>
     </div>
   </section>
-  <RatingSummary />
 
   <script>
     /* Client-side filtering over the rendered cards. Search uses the Pagefind
