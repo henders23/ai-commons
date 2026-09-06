@@ -1,0 +1,122 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import ResourceCard from '../components/ResourceCard.astro';
+import RatingSummary from '../components/RatingSummary.astro';
+import { site } from '../site';
+
+const resources = (await getCollection('resources', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.published.getTime() - a.data.published.getTime());
+const featured = resources.filter((r) => r.data.featured).slice(0, 3);
+const latest = (featured.length ? featured : resources).slice(0, 3);
+const pathways = (await getCollection('pathways', ({ data }) => !data.draft))
+  .sort((a, b) => a.data.order - b.data.order).slice(0, 4);
+const courses = (await getCollection('courses', ({ data }) => !data.draft))
+  .filter((c) => (c.data.ends ?? c.data.starts).getTime() >= Date.now())
+  .sort((a, b) => a.data.starts.getTime() - b.data.starts.getTime());
+---
+<Base>
+  <section class="hero">
+    <div class="wrap">
+      <p class="eyebrow">A commons for English for Academic Purposes</p>
+      <h1>Engage well with AI, in your own practice and with your team.</h1>
+      <p class="lede">Documents, activities and guides for EAP tutors and course leaders: to read, to download, and to run with colleagues.</p>
+      <div style="display:flex;gap:0.6rem;flex-wrap:wrap;margin-top:1.4rem">
+        <a class="btn primary" href="/library">Browse the library</a>
+        <a class="btn" href="/pathways">Follow a pathway</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:0">
+    <div class="wrap">
+      <div class="doors">
+        <a class="door" href="/library?audience=me">
+          <span class="eyebrow">Start here</span>
+          <h3>For your own thinking</h3>
+          <p>Position papers and guides to test your views against and develop your own use of AI.</p>
+          <span class="go">Resources for you →</span>
+        </a>
+        <a class="door" href="/pathways">
+          <span class="eyebrow">Course leaders</span>
+          <h3>Run a session with your team</h3>
+          <p>Pathways and discussion material for a first conversation, a centre position, or an assessment rethink.</p>
+          <span class="go">See the pathways →</span>
+        </a>
+        <a class="door" href="/courses">
+          <span class="eyebrow">Learn together</span>
+          <h3>Courses and events</h3>
+          <p>Structured sessions on AI in EAP. Upcoming dates, formats and how to register.</p>
+          <span class="go">What is coming up →</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>{featured.length ? 'Featured' : 'Latest'} in the library</h2>
+        <a href="/library">Everything in the library</a>
+      </div>
+      <div class="grid">
+        {latest.map((r) => <ResourceCard resource={r} />)}
+      </div>
+    </div>
+  </section>
+
+  {pathways.length > 0 && (
+    <section class="section" style="padding-top:0">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Pathways</h2>
+          <a href="/pathways">All pathways</a>
+        </div>
+        <div class="grid">
+          {pathways.map((p) => (
+            <article class="card">
+              <span class="eyebrow">{p.data.forWhom}</span>
+              <h3><a href={`/pathways/${p.id}`}>{p.data.title}</a></h3>
+              <p>{p.data.tagline}</p>
+              <div class="meta"><span>{p.data.steps.length} steps{p.data.duration ? ` · ${p.data.duration}` : ''}</span></div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  {courses.length > 0 && (
+    <section class="section" style="padding-top:0">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Coming up</h2>
+          <a href="/courses">All courses and events</a>
+        </div>
+        <div class="grid">
+          {courses.slice(0, 3).map((c) => (
+            <article class="card">
+              <span class="eyebrow">{c.data.starts.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+              <h3><a href={`/courses/${c.id}`}>{c.data.title}</a></h3>
+              <p>{c.data.summary}</p>
+              <div class="meta"><span>{c.data.format}</span></div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <section class="section" style="padding-top:0">
+    <div class="wrap">
+      <div class="notice" style="display:flex;gap:1.5rem;align-items:center;flex-wrap:wrap;justify-content:space-between">
+        <div style="max-width:60ch">
+          <strong>Have something to add?</strong>
+          <p style="margin:0.2rem 0 0" class="muted">The Commons grows by email. Send a document, activity or framework and it will be published with your name on it, under {site.licence.label}.</p>
+        </div>
+        <a class="btn" href="/contribute">How to contribute</a>
+      </div>
+    </div>
+  </section>
+  <RatingSummary />
+</Base>

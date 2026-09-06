@@ -1,0 +1,19 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "astro",
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "redirects": [
+    { "source": "/Library.html", "destination": "/library", "permanent": true },
+    { "source": "/Library", "destination": "/library", "permanent": true },
+    { "source": "/EAP AI Commons.html", "destination": "/", "permanent": true },
+    { "source": "/Browse.html", "destination": "/library", "permanent": true },
+    { "source": "/Search.html", "destination": "/library", "permanent": true },
+    { "source": "/Artefact.html", "destination": "/library", "permanent": true },
+    { "source": "/r/:id", "destination": "/library", "permanent": true },
+    { "source": "/sitemap.xml", "destination": "/sitemap-index.xml", "permanent": true }
+  ],
+  "headers": [
+    { "source": "/files/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=3600" }] }
+  ]
+}

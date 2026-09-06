@@ -1,0 +1,57 @@
+---
+import Base from '../layouts/Base.astro';
+import { site, types } from '../site';
+const subject = `Contribution to ${site.fullName}`;
+const body = `Title:
+What it is (guide, paper, activity, framework, discussion pack, or a reading to link to):
+A few sentences on what it is for and who it is for:
+How you would like to be credited (name, role, and a link if you want one):
+I confirm I have the right to share this and am happy for it to be published under ${site.licence.label}: yes / no
+
+(Attach the file, or paste the link.)`;
+const mailto = `mailto:${site.contributeEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+---
+<Base title="Contribute" description={`How to add a document, activity, framework or reading to ${site.fullName}: email it, with attribution.`}>
+  <section class="hero" style="padding-bottom:0.5rem">
+    <div class="wrap">
+      <p class="eyebrow">Contribute</p>
+      <h1>Send it. It gets added, with your name on it.</h1>
+      <p class="lede">The Commons grows by email. There is no upload form and no account. Send what you have and the editor will add it.</p>
+    </div>
+  </section>
+  <section class="section" style="padding-top:1rem">
+    <div class="wrap resource">
+      <div class="prose">
+        <h2>What is welcome</h2>
+        <ul>
+          {Object.values(types).map((t) => <li><strong>{t.plural}.</strong> {t.blurb}</li>)}
+        </ul>
+        <p>Anything that would help an EAP tutor or course leader engage well with AI. It does not have to be polished, and it does not have to be long. A one-page activity that works is worth more than a long document that does not.</p>
+
+        <h2>What to include</h2>
+        <p>Use the button, which opens an email with the template below, or copy the template into your own message.</p>
+        <div class="template">{body}</div>
+        <p style="margin-top:1rem"><a class="btn primary" href={mailto}>Email a contribution</a></p>
+        <p class="small muted">Or write to <a href={`mailto:${site.contributeEmail}`}>{site.contributeEmail}</a>.</p>
+
+        <h2>What happens next</h2>
+        <ol>
+          <li>The editor reads it. Expect a reply within a couple of weeks.</li>
+          <li>If it is added, it gets its own page with your name and a download, under <a href={site.licence.url} rel="license">{site.licence.label}</a>.</li>
+          <li>You can ask for changes or removal at any time by replying to the same thread.</li>
+        </ol>
+        <p>Not everything sent will be published. The Commons is curated, and its usefulness depends on that.</p>
+      </div>
+      <aside data-pagefind-ignore>
+        <div class="panel">
+          <h4>Attribution</h4>
+          <p class="small" style="margin:0">Contributors keep copyright. Their name, and a link if they want one, appears on the resource and in any pathway that uses it.</p>
+        </div>
+        <div class="panel">
+          <h4>Formats</h4>
+          <p class="small" style="margin:0">Word, PowerPoint or PDF for documents. A link for readings. If you have both a source file and a PDF, send both.</p>
+        </div>
+      </aside>
+    </div>
+  </section>
+</Base>

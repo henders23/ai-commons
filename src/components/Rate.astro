@@ -1,0 +1,61 @@
+---
+/* One-to-five star rating for a resource. One rating per browser; the visitor
+   id lives in localStorage and the count/average come from /api/ratings. */
+interface Props { slug: string }
+const { slug } = Astro.props;
+const star = `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.5l2.9 6.2 6.8.8-5 4.7 1.3 6.7L12 17.6 5.9 20.9l1.3-6.7-5-4.7 6.8-.8z"/></svg>`;
+---
+<div class="rate" data-rate={slug}>
+  <h4 style="font-family:var(--font-body);font-size:0.76rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink-3);margin:0 0 0.5rem">Was this useful?</h4>
+  <div class="stars" role="radiogroup" aria-label="Rate this resource from one to five stars">
+    {[1, 2, 3, 4, 5].map((n) => (
+      <button type="button" role="radio" aria-checked="false" aria-label={`${n} star${n === 1 ? '' : 's'}`} data-star={n} set:html={star} />
+    ))}
+  </div>
+  <div class="status">Loading ratings…</div>
+</div>
+<script>
+  const box = document.querySelector<HTMLElement>('[data-rate]');
+  if (box) {
+    const slug = box.dataset.rate!;
+    const status = box.querySelector<HTMLElement>('.status')!;
+    const buttons = Array.from(box.querySelectorAll<HTMLButtonElement>('button[data-star]'));
+    const visitor = (() => {
+      try {
+        let v = localStorage.getItem('aic-visitor');
+        if (!v) { v = crypto.randomUUID(); localStorage.setItem('aic-visitor', v); }
+        return v;
+      } catch { return crypto.randomUUID(); }
+    })();
+    const paint = (n: number) => buttons.forEach((b) => {
+      const on = Number(b.dataset.star) <= n;
+      b.classList.toggle('on', on);
+      b.setAttribute('aria-checked', String(Number(b.dataset.star) === n));
+    });
+    const show = (s: { avg: number; count: number; mine?: number }) => {
+      paint(s.mine || 0);
+      status.textContent = s.count
+        ? `${s.avg.toFixed(1)} out of 5 from ${s.count} rating${s.count === 1 ? '' : 's'}${s.mine ? ` · you gave ${s.mine}` : ''}`
+        : 'No ratings yet. Be the first.';
+    };
+    fetch(`/api/ratings?slugs=${encodeURIComponent(slug)}&visitor=${encodeURIComponent(visitor)}`)
+      .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+      .then((d) => show(d[slug] || { avg: 0, count: 0 }))
+      .catch(() => { status.textContent = 'Ratings are unavailable right now.'; });
+    buttons.forEach((b) => b.addEventListener('click', async () => {
+      const stars = Number(b.dataset.star);
+      paint(stars);
+      status.textContent = 'Saving…';
+      try {
+        const r = await fetch('/api/ratings', {
+          method: 'POST', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ slug, stars, visitor }),
+        });
+        if (!r.ok) throw new Error(String(r.status));
+        show(await r.json());
+      } catch {
+        status.textContent = 'Sorry, that rating could not be saved.';
+      }
+    }));
+  }
+</script>

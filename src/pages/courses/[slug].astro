@@ -1,0 +1,48 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { fmtDate } from '../../lib/format';
+
+export async function getStaticPaths() {
+  const courses = await getCollection('courses', ({ data }) => !data.draft);
+  const resources = await getCollection('resources', ({ data }) => !data.draft);
+  return courses.map((c) => ({ params: { slug: c.id }, props: { course: c, resources } }));
+}
+const { course, resources } = Astro.props;
+const d = course.data;
+const { Content } = await render(course);
+const materials = resources.filter((r) => d.materials.includes(r.id));
+const past = (d.ends ?? d.starts).getTime() < Date.now();
+---
+<Base title={d.title} description={d.summary} ogType="article">
+  <section class="hero" style="padding-bottom:0.5rem">
+    <div class="wrap">
+      <p class="eyebrow"><a href="/courses" style="color:inherit;text-decoration:none">Courses</a> / {past ? 'Past' : 'Upcoming'}</p>
+      <h1>{d.title}</h1>
+      <p class="lede">{d.summary}</p>
+    </div>
+  </section>
+  <section class="section" style="padding-top:1rem">
+    <div class="wrap resource">
+      <div class="prose"><Content /></div>
+      <aside data-pagefind-ignore>
+        <div class="panel">
+          <h4>Details</h4>
+          <dl>
+            <dt>When</dt><dd>{fmtDate(d.starts)}{d.ends ? ` to ${fmtDate(d.ends)}` : ''}</dd>
+            <dt>Format</dt><dd>{d.format}</dd>
+            {d.place && <><dt>Where</dt><dd>{d.place}</dd></>}
+            <dt>For</dt><dd>{d.audience}</dd>
+          </dl>
+          {d.registerUrl && !past && <a class="btn primary" style="margin-top:1rem" href={d.registerUrl} target="_blank" rel="noopener">Register ↗</a>}
+        </div>
+        {materials.length > 0 && (
+          <div class="panel">
+            <h4>Materials</h4>
+            <ul style="margin:0;padding-left:1.1rem">{materials.map((r) => <li><a href={`/library/${r.id}`}>{r.data.title}</a></li>)}</ul>
+          </div>
+        )}
+      </aside>
+    </div>
+  </section>
+</Base>

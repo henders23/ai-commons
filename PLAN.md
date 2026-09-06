@@ -94,23 +94,35 @@ last updated. Every resource has its own crawlable URL.
 7. Planning a pre-sessional with AI in mind — policy, tutor briefing,
    induction, assessment in one sequence.
 
-## Open decisions
+## Decisions since the first draft
 
-- **Which pathways launch.** From the list above.
-- **Ratings backend.** Recommended: a small Vercel serverless function with a
-  key-value store (no auto-pause risk). Stopgap: keep the existing Supabase
-  project for ratings only, reusing `submit_rating` and `rating_stats`; the
-  free tier auto-pauses after a quiet week, which would silently break ratings.
-- **Contribution email address.** A role address (e.g. contribute@) preferred.
-- **First readings.** Whether to keep any of the real websites listed above.
+- **Launch pathways:** 1, 2, 3 and 5 (first conversation, centre position,
+  rethinking assessment, talking to students). Steps not yet backed by a
+  resource are shown as "coming".
+- **Ratings backend:** a Vercel serverless function (`api/ratings.js`) with an
+  Upstash Redis REST store. Supabase is retired.
+- **First content:** three documents from the editor, published as resources
+  (a position paper, a guide, and an activity collection).
+
+## Still open
+
+- **Contribution email address.** `src/site.ts` holds a placeholder
+  (`contribute@example.org`) until a real, ideally role, address is chosen.
+- **PDF versions of the downloads.** Word files only for now; PDFs can be added
+  alongside in `public/files/<slug>/`.
+- **Whether to keep any of the real websites** from the old seed data as
+  readings.
 
 ## Build phases
 
-1. Scaffold the Astro site, content collections, design tokens, light/dark
-   theme, base layout and navigation.
-2. Pages: home, library with search and facets, resource page, pathways,
-   courses, about and contribute.
-3. Ratings: backend function plus the star widget on resource pages.
-4. Seed content: the editor's initial resources, pathways and courses.
-5. Retire the old app: remove the SPA files, Supabase client, generated
-   `r/` pages; regenerate sitemap; redirect old URLs.
+1. ~~Scaffold the Astro site, content collections, design tokens, light/dark
+   theme, base layout and navigation.~~ Done.
+2. ~~Pages: home, library with search and facets, resource page, pathways,
+   courses, about and contribute.~~ Done.
+3. ~~Ratings: backend function plus the star widget on resource pages.~~ Code
+   done; the Upstash store still needs connecting in Vercel (see README).
+4. Seed content: three resources and four pathways are in. More resources,
+   the "coming" pathway steps, and the first course are next.
+5. ~~Retire the old app: remove the SPA files, Supabase client, generated
+   `r/` pages; regenerate sitemap; redirect old URLs.~~ Done; the Supabase
+   project itself can be deleted once the new site is live.
